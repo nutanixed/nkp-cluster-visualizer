@@ -1,0 +1,204 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nkp-cluster-visualizer-github-live-config
+  namespace: default
+  labels:
+    app: nkp-cluster-visualizer-github-live
+    environment: production
+    platform: nutanix
+data:
+  BIND_PORT: "9090"
+  CLUSTER_NAME: "nkp-dev01"
+  ENABLE_DRILL_DOWN: "true"
+  LOG_LEVEL: "INFO"
+  REFRESH_INTERVAL: "30"
+  SHOW_RESOURCE_USAGE: "true"
+  THEME: "nutanix"
+  GITHUB_REPO: "https://github.com/nutanixed/nkp-cluster-visualizer.git"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nkp-cluster-visualizer-github-live-sa
+  namespace: default
+  labels:
+    app: nkp-cluster-visualizer-github-live
+    environment: production
+    platform: nutanix
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nkp-cluster-visualizer-github-live-role
+  labels:
+    app: nkp-cluster-visualizer-github-live
+    environment: production
+    platform: nutanix
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "pods", "services", "namespaces"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["nodes", "pods"]
+  verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nkp-cluster-visualizer-github-live-binding
+  labels:
+    app: nkp-cluster-visualizer-github-live
+    environment: production
+    platform: nutanix
+subjects:
+- kind: ServiceAccount
+  name: nkp-cluster-visualizer-github-live-sa
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: nkp-cluster-visualizer-github-live-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nkp-cluster-visualizer-github-live
+  namespace: default
+  labels:
+    app: nkp-cluster-visualizer-github-live
+    environment: production
+    platform: nutanix
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nkp-cluster-visualizer-github-live
+  template:
+    metadata:
+      labels:
+        app: nkp-cluster-visualizer-github-live
+        environment: production
+        platform: nutanix
+    spec:
+      serviceAccountName: nkp-cluster-visualizer-github-live-sa
+      initContainers:
+      - name: git-clone
+        image: alpine/git:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "Cloning NKP Cluster Visualizer from GitHub..."
+          git clone https://github.com/nutanixed/nkp-cluster-visualizer.git /tmp/repo
+          
+          echo "Copying application files..."
+          cp -r /tmp/repo/* /app/
+          
+          echo "Application cloned successfully from GitHub!"
+          ls -la /app/
+        volumeMounts:
+        - name: app-volume
+          mountPath: /app
+      containers:
+      - name: nkp-cluster-visualizer-github-live
+        image: python:3.11-slim
+        ports:
+        - containerPort: 9090
+          name: http
+        env:
+        - name: BIND_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-github-live-config
+              key: BIND_PORT
+        - name: REFRESH_INTERVAL
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-github-live-config
+              key: REFRESH_INTERVAL
+        - name: CLUSTER_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-github-live-config
+              key: CLUSTER_NAME
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          cd /app
+          echo "Installing dependencies from GitHub repository..."
+          pip install --no-cache-dir -r requirements.txt
+          echo "Starting NKP Cluster Visualizer from GitHub source..."
+          python3 cluster_api.py
+        volumeMounts:
+        - name: app-volume
+          mountPath: /app
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9090
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9090
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: app-volume
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nkp-cluster-visualizer-github-live-service
+  namespace: default
+  labels:
+    app: nkp-cluster-visualizer-github-live
+    environment: production
+    platform: nutanix
+spec:
+  selector:
+    app: nkp-cluster-visualizer-github-live
+  ports:
+  - name: http
+    port: 80
+    targetPort: 9090
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nkp-cluster-visualizer-github-live-loadbalancer
+  namespace: default
+  labels:
+    app: nkp-cluster-visualizer-github-live
+    environment: production
+    platform: nutanix
+spec:
+  selector:
+    app: nkp-cluster-visualizer-github-live
+  ports:
+  - name: http
+    port: 80
+    targetPort: 9090
+    protocol: TCP
+  type: LoadBalancer
