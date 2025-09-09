@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NKP Cluster Visualizer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --info-color: #3b82f6;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        
+        .header {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(120,85,250,0.05)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .nutanix-logo {
+            height: 120px;
+            width: auto;
+            max-width: 400px;
+            filter: drop-shadow(0 2px 4px rgba(120, 85, 250, 0.2));
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.25rem 0;
+            letter-spacing: -0.025em;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .subtitle {
+            font-size: 1.125rem;
+            font-weight: 400;
+            opacity: 0.9;
+            margin: 0.25rem 0 0.75rem 0;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(120, 85, 250, 0.1);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid rgba(120, 85, 250, 0.3);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--accent-color);
+            border-radius: 2px;
+            margin-right: 1rem;
+        }
+        
+        .architecture-diagram {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+        
+        .cluster-overview {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            min-width: 800px;
+        }
+        
+        .cluster-header {
+            text-align: center;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .cluster-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .cluster-info {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+        
+        .refresh-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .refresh-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .refresh-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+        
+        .architecture-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .arch-layer {
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+        
+        .service-layer {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 212, 170, 0.05));
+            border-color: rgba(0, 212, 170, 0.3);
+        }
+        
+        .deployment-layer {
+            background: linear-gradient(135deg, rgba(120, 85, 250, 0.1), rgba(120, 85, 250, 0.05));
+            border-color: rgba(120, 85, 250, 0.3);
+        }
+        
+        .control-layer {
+            background: linear-gradient(135deg, rgba(120, 85, 250, 0.1), rgba(120, 85, 250, 0.05));
+            border-color: rgba(120, 85, 250, 0.3);
+        }
+        
+        .worker-layer {
+            background: linear-gradient(135deg, rgba(255, 59, 48, 0.1), rgba(255, 59, 48, 0.05));
+            border-color: rgba(255, 59, 48, 0.3);
+        }
+        
+        .layer-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .layer-description {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+        
+        .layer-components {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .component {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            min-width: 200px;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .component::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+        }
+        
+        .component:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .component.control-plane {
+            background: linear-gradient(135deg, var(--primary-color), #9575ff) !important;
+            color: white !important;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .component.control-plane:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .component.worker-node {
+            background: linear-gradient(135deg, var(--primary-color), #9575ff) !important;
+            color: white !important;
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .component.worker-node:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .component.control-plane *,
+        .component.worker-node * {
+            color: white !important;
+        }
+        
+        .component-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .component-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .component-detail {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+        
+        .component-explanation {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+        
+        .component-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+        
+        .component-specs span {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+        
+        .worker-pool-section {
+            margin-bottom: 2rem;
+            background: rgba(120, 85, 250, 0.05);
+            border: 1px solid rgba(120, 85, 250, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .pool-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(120, 85, 250, 0.3);
+        }
+        
+        .pool-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .pool-stats {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .pool-stat {
+            background: rgba(120, 85, 250, 0.1);
+            border: 1px solid rgba(120, 85, 250, 0.3);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .worker-nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            align-items: start;
+        }
+        
+        .node-pool-badge {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.5rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .layer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            gap: 2rem;
+        }
+        
+        .layer-title-section {
+            flex: 1;
+        }
+        
+        .pod-view-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.25rem;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        
+        .toggle-btn:hover {
+            background: rgba(120, 85, 250, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .toggle-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .control-plane-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            align-items: start;
+        }
+        
+        .control-plane-detailed {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6) !important;
+            color: white !important;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .control-plane-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-plane-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .control-plane-ip {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 0.75rem;
+        }
+        
+        .control-plane-badge {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+        
+        .control-plane-specs {
+            margin-bottom: 1.5rem;
+        }
+        
+        .spec-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .spec-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .control-plane-components {
+            margin-bottom: 1.5rem;
+        }
+        
+        .components-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+        
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .component-badge {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 8px;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .component-badge:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        .control-plane-pods {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        
+        .control-plane-pod {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        }
+        
+        .deployment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            gap: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .selector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 2rem;
+        }
+        
+        .app-view-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.25rem;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .node-header {
+            text-align: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .node-name {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .node-ip {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+        
+        .node-specs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .spec-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .spec-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-bottom: 0.25rem;
+        }
+        
+        .spec-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .pods-section {
+            margin-top: 1rem;
+        }
+        
+        .pods-header {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        
+        .pods-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            /* Removed max-height and overflow to show all pods */
+        }
+        
+        /* App Selector Styles */
+        .app-selector {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(120, 85, 250, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(120, 85, 250, 0.2);
+        }
+        
+        .selector-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .app-tabs {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.25rem;
+            box-shadow: var(--shadow-sm);
+            margin: 0 auto;
+        }
+        
+        .app-tab {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+        
+        .app-tab:hover {
+            background: rgba(120, 85, 250, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .app-tab.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        #dynamic-app-tabs {
+            display: contents;
+        }
+        
+        /* App Content Styles */
+        .app-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .app-content.active {
+            display: block;
+        }
+        
+        .external-layer {
+            background: linear-gradient(135deg, rgba(255, 149, 0, 0.1), rgba(255, 149, 0, 0.05));
+            border-color: rgba(255, 149, 0, 0.3);
+        }
+        
+        .deployment-detail-view {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .deployment-header {
+            text-align: center;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .deployment-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .deployment-info {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .pod-distribution {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .node-pod-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+        
+        .node-pod-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .node-card-header {
+            text-align: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-light);
+        }
+        
+        .node-card-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .node-card-ip {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .pod-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+        
+        .pod-card {
+            background: rgba(120, 85, 250, 0.1);
+            border: 1px solid rgba(120, 85, 250, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .pod-card:hover {
+            transform: scale(1.02);
+            background: rgba(120, 85, 250, 0.15);
+        }
+        
+        .pod-card.running {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .pod-card.pending {
+            border-color: var(--warning-color);
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        .pod-card.failed {
+            border-color: var(--error-color);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .pod-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+        }
+        
+        .pod-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .pod-status.running {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .pod-status.pending {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .pod-status.failed {
+            background: var(--error-color);
+            color: white;
+        }
+        
+        .pod-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .pod-item:hover {
+            transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .cluster-overview {
+                min-width: auto;
+            }
+            
+            .worker-nodes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pool-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .pool-stats {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .layer-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+            }
+            
+            .pod-view-toggle {
+                align-self: center;
+            }
+            
+            .control-plane-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .spec-row {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .components-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .deployment-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+            }
+            
+            .selector-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+            }
+            
+            .app-view-toggle {
+                align-self: center;
+            }
+            
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <svg class="nutanix-logo" viewBox="0 0 1064.95 134.32" xmlns="http://www.w3.org/2000/svg">
+                    <style type="text/css">.st0{fill:#131313;}</style>
+                    <path class="st0" d="M476.14,28.26h-53.43c-0.05,0-0.08,0.04-0.08,0.08v103.97c0,1.1-0.9,2-2,2h-25.81c-1.1,0-2-0.9-2-2V28.34c0-0.05-0.04-0.08-0.08-0.08h-53.28c-1.1,0-2-0.9-2-2V2.98c0-1.1,0.9-2,2-2h136.68c1.1,0,2,0.9,2,2v23.28C478.14,27.36,477.25,28.26,476.14,28.26z M855.74,0.98h-25.81c-1.1,0-2,0.9-2,2v129.34c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2V2.98C857.74,1.87,856.84,0.98,855.74,0.98z M1064.31,131.08c0.58,0.5,0.79,1.32,0.52,2.04s-0.96,1.2-1.73,1.2h-39.75c-0.44,0-0.87-0.16-1.21-0.45l-43.67-37.79c-0.4-0.35-0.64-0.86-0.64-1.39c0-0.54,0.23-1.04,0.64-1.39l19.87-17.2c0.69-0.6,1.72-0.6,2.41,0L1064.31,131.08z M998.36,59.2c0.35,0.3,0.78,0.45,1.21,0.45c0.43,0,0.86-0.15,1.21-0.45l63.54-54.99c0.58-0.5,0.79-1.32,0.52-2.04c-0.27-0.72-0.96-1.2-1.73-1.2h-39.75c-0.44,0-0.87,0.16-1.21,0.45l-43.67,37.79c-0.4,0.35-0.64,0.86-0.64,1.39c0,0.54,0.23,1.04,0.64,1.39L998.36,59.2z M990.04,67.65c0-0.54-0.23-1.04-0.64-1.39L914.49,1.43c-0.33-0.29-0.76-0.45-1.21-0.45h-39.75c-0.77,0-1.46,0.48-1.73,1.2s-0.06,1.53,0.52,2.04l73.23,63.37c0.04,0.03,0.04,0.09,0,0.13l-73.23,63.37c-0.58,0.5-0.79,1.32-0.52,2.04s0.96,1.2,1.73,1.2h39.75c0.44,0,0.87-0.16,1.21-0.45l74.91-64.83C989.81,68.69,990.04,68.18,990.04,67.65z M29.81,44.32c0-0.07,0.08-0.11,0.13-0.07c3.92,3.51,93.13,83.39,97.43,86.77c3.8,2.98,8.19,4.83,13.91,3.99c7.4-0.9,15.54-7.22,15.54-17.86V2.98c0-1.1-0.9-2-2-2h-25.81c-1.1,0-2,0.9-2,2v87.91c0,0.07-0.08,0.11-0.13,0.07c-3.92-3.51-93.13-83.39-97.43-86.77c-3.8-2.98-8.19-4.83-13.91-3.99C8.14,1.1,0,7.43,0,18.06v114.25c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2L29.81,44.32z M684.96,44.32c0-0.07,0.08-0.11,0.13-0.07c3.92,3.51,93.13,83.39,97.43,86.77c3.8,2.98,8.19,4.83,13.91,3.99c7.4-0.9,15.54-7.22,15.54-17.86V2.98c0-1.1-0.9-2-2-2h-25.81c-1.1,0-2,0.9-2,2v87.91c0,0.07-0.08,0.11-0.13,0.07c-3.92-3.51-93.13-83.39-97.43-86.77c-3.8-2.98-8.19-4.83-13.91-3.99c-7.4,0.9-15.54,7.23-15.54,17.86v114.25c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2V44.32z M255.72,136.96c16.08-0.04,34-0.95,45-7.44c14.64-8.64,21.76-20.64,21.76-36.67l0.01-89.87c0-1.1-0.9-2-2-2h-26.06c-1.1,0-2,0.9-2,2l-0.01,88.12c-0.25,17.54-21.98,17.72-37.66,17.72h-14.25c-15.68,0-37.4-0.17-37.66-17.72l-0.01-88.12c0-1.1-0.9-2-2-2h-26.06c-1.1,0-2,0.9-2,2l0.01,89.87c0,16.03,7.12,28.03,21.76,36.67c11,6.49,28.92,7.41,45,7.44H255.72z M642.86,131.31c0.41,0.58,0.46,1.34,0.14,1.98c-0.32,0.63-0.97,1.03-1.68,1.03h-31.87c-0.64,0-1.24-0.31-1.61-0.84l-18.59-26.58c-0.02-0.02-0.04-0.04-0.07-0.04h-95.56c-0.03,0-0.05,0.01-0.07,0.04l-18.66,26.61c-0.35,0.51-0.93,0.81-1.54,0.81h-31.87c-0.71,0-1.36-0.4-1.68-1.03s-0.27-1.4,0.14-1.98c0,0,81.05-115.69,86.05-122.6S536.02,0,541.44,0c5.97,0,10.58,2.23,15.02,8.18L642.86,131.31z M569.84,79.45L541.48,39.3c-0.03-0.05-0.1-0.05-0.14,0l-28.37,40.15c-0.04,0.06,0,0.13,0.07,0.13h56.73C569.84,79.58,569.88,79.5,569.84,79.45z"/>
+                </svg>
+                <h1>NKP Cluster Visualizer</h1>
+                <p class="subtitle">Real-time Kubernetes Platform Architecture & Workload Distribution</p>
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    <span id="cluster-status">Cluster Status: Loading...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Application Selector -->
+            <div class="app-selector">
+                <div class="selector-header">
+                    <div class="selector-title">📱 Application View</div>
+                    <div class="app-view-toggle">
+                        <button id="app-deployments-btn" class="toggle-btn active" onclick="toggleAppView('app')">
+                            📱 Application Deployments
+                        </button>
+                        <button id="system-deployments-btn" class="toggle-btn" onclick="toggleAppView('system')">
+                            ⚙️ System Deployments
+                        </button>
+                    </div>
+                </div>
+                <div class="app-tabs">
+                    <button class="app-tab active" data-app="overview">🏗️ Infrastructure Overview</button>
+                    <div id="dynamic-app-tabs">
+                        <!-- Dynamic deployment tabs will be added here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overview Tab Content -->
+            <div class="app-content active" id="overview-content">
+                <div class="section-title">🏗️ Cluster Architecture</div>
+                
+                <div class="architecture-diagram">
+                    <div class="cluster-overview">
+                        <div class="cluster-header">
+                            <div class="cluster-title" id="cluster-title">🎯 NKP Cluster: Loading...</div>
+                            <div class="cluster-info" id="cluster-info">Kubernetes Loading... | Control Plane: Loading...</div>
+                        </div>
+                        
+                        <div class="refresh-controls">
+                            <button class="refresh-btn" onclick="refreshData()">🔄 Refresh Data</button>
+                            <div id="last-updated" style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem; text-align: center;">Last Updated: Loading...</div>
+                        </div>
+                    </div>
+                    
+                    <div id="architecture-content">
+                        <div class="loading">Loading cluster architecture...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic App Content will be added here -->
+            <div id="dynamic-app-content">
+                <!-- Dynamic deployment content will be added here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let refreshInterval;
+        let clusterData = null;
+        let currentPodView = 'app'; // 'app' or 'system'
+        let currentAppView = 'app'; // 'app' or 'system' for Application View
+        
+        async function fetchClusterData() {
+            try {
+                const response = await fetch('/api/cluster');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching cluster data:', error);
+                return null;
+            }
+        }
+        
+        function updateClusterInfo(data) {
+            if (!data) return;
+            
+            document.getElementById('cluster-title').textContent = `🎯 NKP Cluster: ${data.cluster_name || 'Unknown'}`;
+            
+            const controlPlaneIP = data.master_nodes && data.master_nodes.length > 0 
+                ? data.master_nodes[0].internal_ip || 'Unknown' 
+                : 'Unknown';
+            
+            document.getElementById('cluster-info').textContent = 
+                `Kubernetes ${data.kubernetes_version || 'Unknown'} | Control Plane: ${controlPlaneIP}:443`;
+            
+            document.getElementById('cluster-status').textContent = 
+                `Cluster Status: ${data.ready_nodes}/${data.total_nodes} Nodes Ready | ${data.running_pods}/${data.total_pods} Pods Running`;
+            
+            if (data.last_updated) {
+                const date = new Date(data.last_updated);
+                const options = {
+                    timeZone: 'America/New_York',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    timeZoneName: 'short'
+                };
+                document.getElementById('last-updated').textContent = 'Last Updated: ' + date.toLocaleString('en-US', options);
+            }
+        }
+        
+        function renderArchitecture(data) {
+            if (!data) return;
+            
+            const archContent = document.getElementById('architecture-content');
+            
+            let html = '<div class="architecture-flow">';
+            
+            // External Traffic Layer (Load Balancers)
+            html += `
+                <div class="arch-layer external-layer">
+                    <div class="layer-title">🌍 External Traffic Entry</div>
+                    <div class="layer-description">External users access applications through LoadBalancer services</div>
+                    <div class="layer-components">
+                        <div class="component external-lb">
+                            <div class="component-icon">⚖️</div>
+                            <div class="component-name">MetalLB Controller</div>
+                            <div class="component-detail">Load Balancer Provider</div>
+                            <div class="component-explanation">Assigns external IPs to LoadBalancer services</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Service Load Balancers Layer
+            html += `
+                <div class="arch-layer service-layer">
+                    <div class="layer-title">🌐 Service Load Balancers</div>
+                    <div class="layer-description">External access points for applications</div>
+                    <div class="layer-components">
+            `;
+            
+            if (data.services && data.services.length > 0) {
+                const loadBalancerServices = data.services.filter(svc => svc.type === 'LoadBalancer');
+                loadBalancerServices.slice(0, 8).forEach(service => {
+                    const port = service.ports && service.ports.length > 0 ? service.ports[0].port : 'Unknown';
+                    const lbIP = service.load_balancer_ip || 'Pending';
+                    html += `
+                        <div class="component service">
+                            <div class="component-icon">🌐</div>
+                            <div class="component-name">${service.name}</div>
+                            <div class="component-detail">Type: ${service.type} | Port: ${port}</div>
+                            <div class="component-detail">LB IP: ${lbIP}</div>
+                            <div class="component-explanation">Routes external traffic to pods using label selector</div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `
+                    <div class="component service">
+                        <div class="component-icon">🌐</div>
+                        <div class="component-name">No LoadBalancer Services</div>
+                        <div class="component-detail">No external services found</div>
+                    </div>
+                `;
+            }
+            
+            html += '</div></div>';
+            
+            // Application Workloads Layer
+            html += `
+                <div class="arch-layer deployment-layer">
+                    <div class="layer-title">🚀 Application Workloads</div>
+                    <div class="layer-description">Running applications and their deployment status</div>
+                    <div class="layer-components">
+            `;
+            
+            if (data.deployments && data.deployments.length > 0) {
+                // Filter to show only application deployments (non-system)
+                const applicationDeployments = data.deployments.filter(deployment => {
+                    // Define system namespaces
+                    const systemNamespaces = [
+                        'kube-system', 'kube-public', 'kube-node-lease', 'kommander',
+                        'kommander-flux', 'gatekeeper-system', 'cert-manager', 'metallb-system',
+                        'ingress-nginx', 'monitoring', 'logging', 'velero', 'istio-system',
+                        'linkerd', 'calico-system', 'tigera-operator', 'ntnx-system',
+                        'nutanix-platform'
+                    ];
+                    
+                    // Check if deployment is in a system namespace
+                    if (systemNamespaces.includes(deployment.namespace)) {
+                        return false;
+                    }
+                    
+                    // Check deployment name patterns
+                    const systemDeploymentPrefixes = [
+                        'kube-', 'coredns', 'calico-', 'tigera-', 'metallb-',
+                        'ingress-', 'cert-manager', 'prometheus', 'grafana',
+                        'alertmanager', 'node-exporter', 'kube-state-metrics', 'metrics-server'
+                    ];
+                    
+                    const deploymentName = deployment.name.toLowerCase();
+                    return !systemDeploymentPrefixes.some(prefix => deploymentName.startsWith(prefix));
+                });
+                
+                // Show up to 8 application deployments
+                applicationDeployments.slice(0, 8).forEach(deployment => {
+                    // Calculate deployment health
+                    const healthPercentage = deployment.replicas > 0 ? Math.round((deployment.ready_replicas / deployment.replicas) * 100) : 0;
+                    let healthIcon = '✅';
+                    let healthStatus = 'Healthy';
+                    
+                    if (healthPercentage < 100) {
+                        healthIcon = '⚠️';
+                        healthStatus = 'Degraded';
+                    }
+                    if (healthPercentage === 0) {
+                        healthIcon = '❌';
+                        healthStatus = 'Failed';
+                    }
+                    
+                    // Find associated pods for this deployment
+                    let podCount = 0;
+                    let runningPods = 0;
+                    if (data.master_nodes) {
+                        data.master_nodes.forEach(node => {
+                            if (node.pods) {
+                                node.pods.forEach(pod => {
+                                    if (pod.labels && pod.labels.app === deployment.name) {
+                                        podCount++;
+                                        if (pod.status === 'Running') runningPods++;
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    if (data.worker_pools) {
+                        Object.values(data.worker_pools).forEach(pool => {
+                            pool.forEach(node => {
+                                if (node.pods) {
+                                    node.pods.forEach(pod => {
+                                        if (pod.labels && pod.labels.app === deployment.name) {
+                                            podCount++;
+                                            if (pod.status === 'Running') runningPods++;
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                    }
+                    
+                    // Get dynamic application info
+                    let dynamicInfo = '';
+                    
+                    // Try to get container image from deployment
+                    if (deployment.containers && deployment.containers.length > 0) {
+                        const mainContainer = deployment.containers[0];
+                        if (mainContainer.image) {
+                            // Clean up image name for display
+                            let imageName = mainContainer.image;
+                            if (imageName.includes('/')) {
+                                imageName = imageName.split('/').pop();
+                            }
+                            if (imageName.length > 30) {
+                                imageName = imageName.substring(0, 27) + '...';
+                            }
+                            dynamicInfo = `🐳 Image: ${imageName}`;
+                        }
+                    }
+                    
+                    // If no image info, try to get creation time/age
+                    if (!dynamicInfo && deployment.creation_timestamp) {
+                        try {
+                            const createdDate = new Date(deployment.creation_timestamp);
+                            const now = new Date();
+                            const diffMs = now - createdDate;
+                            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                            
+                            if (diffDays > 0) {
+                                dynamicInfo = `⏱️ Running for ${diffDays} day${diffDays > 1 ? 's' : ''}`;
+                            } else if (diffHours > 0) {
+                                dynamicInfo = `⏱️ Running for ${diffHours} hour${diffHours > 1 ? 's' : ''}`;
+                            } else {
+                                dynamicInfo = `⏱️ Recently started`;
+                            }
+                        } catch (e) {
+                            // Fallback if date parsing fails
+                            dynamicInfo = `⏱️ Active deployment`;
+                        }
+                    }
+                    
+                    // Fallback if no other info available
+                    if (!dynamicInfo) {
+                        dynamicInfo = `🚀 Active workload`;
+                    }
+                    
+                    html += `
+                        <div class="component deployment">
+                            <div class="component-icon">📦</div>
+                            <div class="component-name">${deployment.name}</div>
+                            <div class="component-detail">${healthIcon} ${healthStatus} (${deployment.ready_replicas}/${deployment.replicas} replicas)</div>
+                            <div class="component-detail">📍 Namespace: ${deployment.namespace}</div>
+                            ${podCount > 0 ? `<div class="component-detail">🏃 Running Pods: ${runningPods}/${podCount}</div>` : ''}
+                            <div class="component-explanation">${dynamicInfo}</div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `
+                    <div class="component deployment">
+                        <div class="component-icon">📦</div>
+                        <div class="component-name">No Application Deployments</div>
+                        <div class="component-detail">No user application deployments found</div>
+                    </div>
+                `;
+            }
+            
+            html += '</div></div>';
+            
+            // Control Plane
+            html += `
+                <div class="arch-layer control-layer">
+                    <div class="layer-title">🎛️ Control Plane</div>
+                    <div class="layer-description">Master nodes manage the cluster state and run control plane components</div>
+                    <div class="control-plane-grid">
+            `;
+            
+            if (data.master_nodes && data.master_nodes.length > 0) {
+                data.master_nodes.forEach(master => {
+                    // Filter pods based on current view for control plane too
+                    const filteredPods = filterPodsByView(master.pods || []);
+                    const runningPods = filteredPods.filter(pod => pod.status === 'Running').length;
+                    const totalPods = filteredPods.length;
+                    const nodeStatusIcon = master.status === 'Ready' ? '✅' : '❌';
+                    const podTypeLabel = currentPodView === 'system' ? 'System Pods' : 'Application Pods';
+                    
+                    html += `
+                        <div class="component control-plane-detailed">
+                            <div class="control-plane-header">
+                                <div class="control-plane-title">${nodeStatusIcon} ${master.name}</div>
+                                <div class="control-plane-ip">${master.internal_ip || 'Unknown IP'}</div>
+                                <div class="control-plane-badge">CONTROL PLANE</div>
+                            </div>
+                            
+                            <div class="control-plane-specs">
+                                <div class="spec-row">
+                                    <div class="spec-item">
+                                        <div class="spec-label">CPU</div>
+                                        <div class="spec-value">${master.cpu_capacity || 'Unknown'}</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-label">Memory</div>
+                                        <div class="spec-value">${formatMemory(master.memory_capacity)}</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-label">Status</div>
+                                        <div class="spec-value">${master.status || 'Unknown'}</div>
+                                    </div>
+                                </div>
+                                <div class="spec-row">
+                                    <div class="spec-item">
+                                        <div class="spec-label">OS</div>
+                                        <div class="spec-value">${master.os || 'Unknown'}</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-label">Kubernetes</div>
+                                        <div class="spec-value">${master.version || 'Unknown'}</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-label">Runtime</div>
+                                        <div class="spec-value">${master.container_runtime ? master.container_runtime.split('://')[0] : 'Unknown'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="control-plane-components">
+                                <div class="components-title">Core Components</div>
+                                <div class="components-grid">
+                                    <div class="component-badge">🌐 API Server</div>
+                                    <div class="component-badge">🗄️ etcd</div>
+                                    <div class="component-badge">📅 Scheduler</div>
+                                    <div class="component-badge">🎯 Controller Manager</div>
+                                </div>
+                            </div>
+                            
+                            <div class="control-plane-pods">
+                                <div class="pods-header">${podTypeLabel} (${runningPods}/${totalPods})</div>
+                                <div class="pods-list">
+                    `;
+                    
+                    if (filteredPods.length > 0) {
+                        // Show ALL running pods from filtered list
+                        const runningPodsList = filteredPods.filter(pod => pod.status === 'Running');
+                        if (runningPodsList.length > 0) {
+                            runningPodsList.forEach(pod => {
+                                html += `<div class="pod-item control-plane-pod" title="${pod.namespace}/${pod.name}">${pod.name}</div>`;
+                            });
+                        } else {
+                            html += `<div style="font-size: 0.75rem; color: rgba(255,255,255,0.7); text-align: center;">No running ${currentPodView} pods</div>`;
+                        }
+                    } else {
+                        html += `<div style="font-size: 0.75rem; color: rgba(255,255,255,0.7); text-align: center;">No ${currentPodView} pods</div>`;
+                    }
+                    
+                    html += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `
+                    <div class="component control-plane">
+                        <div class="component-icon">🎛️</div>
+                        <div class="component-name">No Control Plane</div>
+                        <div class="component-detail">No master nodes found</div>
+                    </div>
+                `;
+            }
+            
+            html += '</div></div>';
+            
+            // Worker Nodes
+            html += `
+                <div class="arch-layer worker-layer">
+                    <div class="layer-header">
+                        <div class="layer-title-section">
+                            <div class="layer-title">⚙️ Worker Nodes</div>
+                            <div class="layer-description">Worker nodes run application workloads and system pods</div>
+                        </div>
+                        <div class="pod-view-toggle">
+                            <button id="app-pods-btn" class="toggle-btn ${currentPodView === 'app' ? 'active' : ''}" onclick="togglePodView('app')">
+                                📱 Application Pods
+                            </button>
+                            <button id="system-pods-btn" class="toggle-btn ${currentPodView === 'system' ? 'active' : ''}" onclick="togglePodView('system')">
+                                ⚙️ System Pods
+                            </button>
+                        </div>
+                    </div>
+            `;
+            
+            if (data.worker_pools && Object.keys(data.worker_pools).length > 0) {
+                Object.entries(data.worker_pools).forEach(([poolName, nodes]) => {
+                    const totalNodesInPool = nodes.length;
+                    const readyNodesInPool = nodes.filter(node => node.status === 'Ready').length;
+                    
+                    // Calculate pod counts based on current filter
+                    const totalPodsInPool = nodes.reduce((sum, node) => {
+                        const filteredPods = filterPodsByView(node.pods || []);
+                        return sum + filteredPods.length;
+                    }, 0);
+                    const runningPodsInPool = nodes.reduce((sum, node) => {
+                        const filteredPods = filterPodsByView(node.pods || []);
+                        return sum + filteredPods.filter(pod => pod.status === 'Running').length;
+                    }, 0);
+                    
+                    html += `
+                        <div class="worker-pool-section">
+                            <div class="pool-header">
+                                <div class="pool-title">🏊 ${poolName}</div>
+                                <div class="pool-stats">
+                                    <span class="pool-stat">Nodes: ${readyNodesInPool}/${totalNodesInPool}</span>
+                                    <span class="pool-stat">Pods: ${runningPodsInPool}/${totalPodsInPool}</span>
+                                </div>
+                            </div>
+                            <div class="worker-nodes-grid">
+                    `;
+                    
+                    nodes.forEach(node => {
+                        // Filter pods based on current view
+                        const filteredPods = filterPodsByView(node.pods || []);
+                        const runningPods = filteredPods.filter(pod => pod.status === 'Running').length;
+                        const totalPods = filteredPods.length;
+                        const nodeStatusIcon = node.status === 'Ready' ? '✅' : '❌';
+                        
+                        const podTypeLabel = currentPodView === 'system' ? 'System Pods' : 'Application Pods';
+                        
+                        html += `
+                            <div class="component worker-node">
+                                <div class="node-header">
+                                    <div class="node-name">${nodeStatusIcon} ${node.name}</div>
+                                    <div class="node-ip">${node.internal_ip || 'Unknown IP'}</div>
+                                    <div class="node-pool-badge">${poolName}</div>
+                                </div>
+                                <div class="node-specs">
+                                    <div class="spec-item">
+                                        <div class="spec-label">CPU</div>
+                                        <div class="spec-value">${node.cpu_capacity || 'Unknown'}</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-label">Memory</div>
+                                        <div class="spec-value">${formatMemory(node.memory_capacity)}</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-label">Status</div>
+                                        <div class="spec-value">${node.status || 'Unknown'}</div>
+                                    </div>
+                                </div>
+                                <div class="pods-section">
+                                    <div class="pods-header">${podTypeLabel} (${runningPods}/${totalPods})</div>
+                                    <div class="pods-list">
+                        `;
+                        
+                        if (filteredPods.length > 0) {
+                            // Show ALL running pods from filtered list
+                            const runningPodsList = filteredPods.filter(pod => pod.status === 'Running');
+                            if (runningPodsList.length > 0) {
+                                runningPodsList.forEach(pod => {
+                                    html += `<div class="pod-item" title="${pod.namespace}/${pod.name}">${pod.name}</div>`;
+                                });
+                            } else {
+                                html += `<div style="font-size: 0.75rem; color: rgba(255,255,255,0.7); text-align: center;">No running ${currentPodView} pods</div>`;
+                            }
+                        } else {
+                            html += `<div style="font-size: 0.75rem; color: rgba(255,255,255,0.7); text-align: center;">No ${currentPodView} pods</div>`;
+                        }
+                        
+                        html += `
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `
+                    <div class="worker-nodes-grid">
+                        <div class="component worker-node">
+                            <div class="component-icon">⚙️</div>
+                            <div class="component-name">No Worker Nodes</div>
+                            <div class="component-detail">No worker nodes found</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            html += '</div>';
+            
+            archContent.innerHTML = html;
+        }
+        
+        function formatMemory(memory) {
+            if (!memory) return 'Unknown';
+            if (memory.includes('Ki')) {
+                const kb = parseInt(memory.replace('Ki', ''));
+                const gb = (kb / 1024 / 1024).toFixed(1);
+                return `${gb} GB`;
+            }
+            return memory;
+        }
+        
+        function createDeploymentTabs(data) {
+            const dynamicTabsContainer = document.getElementById('dynamic-app-tabs');
+            const dynamicContentContainer = document.getElementById('dynamic-app-content');
+            
+            // Clear existing dynamic tabs and content
+            dynamicTabsContainer.innerHTML = '';
+            dynamicContentContainer.innerHTML = '';
+            
+            if (data.deployments && data.deployments.length > 0) {
+                // Filter deployments based on current view
+                const filteredDeployments = data.deployments.filter(deployment => {
+                    if (currentAppView === 'system') {
+                        return isSystemDeployment(deployment);
+                    } else {
+                        return !isSystemDeployment(deployment);
+                    }
+                });
+                
+                if (filteredDeployments.length > 0) {
+                    filteredDeployments.forEach((deployment, index) => {
+                        const deploymentId = deployment.name.replace(/[^a-zA-Z0-9]/g, '-');
+                        const icon = getDeploymentIcon(deployment.name);
+                        
+                        // Create tab
+                        const tab = document.createElement('button');
+                        tab.className = 'app-tab';
+                        tab.setAttribute('data-app', deploymentId);
+                        tab.innerHTML = `${icon} ${deployment.name}`;
+                        tab.onclick = () => switchTab(deploymentId);
+                        dynamicTabsContainer.appendChild(tab);
+                        
+                        // Create content
+                        const content = document.createElement('div');
+                        content.className = 'app-content';
+                        content.id = `${deploymentId}-content`;
+                        content.innerHTML = createDeploymentContent(deployment, data);
+                        dynamicContentContainer.appendChild(content);
+                    });
+                    
+                    // Activate the first deployment tab if no tab is currently active
+                    const activeTab = document.querySelector('.app-tab.active');
+                    if (!activeTab || activeTab.getAttribute('data-app') === 'overview') {
+                        const firstDeploymentId = filteredDeployments[0].name.replace(/[^a-zA-Z0-9]/g, '-');
+                        // Don't auto-switch away from overview, just ensure tabs are ready
+                    }
+                } else {
+                    // Show message when no deployments match the filter
+                    const viewType = currentAppView === 'system' ? 'system' : 'application';
+                    dynamicContentContainer.innerHTML = `
+                        <div class="app-content active" style="text-align: center; padding: 2rem;">
+                            <h3>No ${viewType} deployments found</h3>
+                            <p>There are currently no ${viewType} deployments in this cluster.</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        function getDeploymentIcon(deploymentName) {
+            const name = deploymentName.toLowerCase();
+            if (name.includes('prism-vnc-proxy')) return '🖥️';
+            if (name.includes('prism') && (name.includes('console') || name.includes('dashboard'))) return '📊';
+            if (name.includes('apache') || name.includes('nginx') || name.includes('web')) return '🌐';
+            if (name.includes('flask') || name.includes('api') || name.includes('backend')) return '📊';
+            if (name.includes('database') || name.includes('db') || name.includes('mysql') || name.includes('postgres')) return '🗄️';
+            if (name.includes('redis') || name.includes('cache')) return '⚡';
+            if (name.includes('monitoring') || name.includes('prometheus') || name.includes('grafana')) return '📈';
+            if (name.includes('visualizer') || name.includes('dashboard')) return '📊';
+            return '📦';
+        }
+        
+        function createDeploymentContent(deployment, clusterData) {
+            const deploymentPods = [];
+            const nodeDistribution = {};
+            
+            // Find all pods for this deployment
+            if (clusterData.master_nodes) {
+                clusterData.master_nodes.forEach(node => {
+                    if (node.pods) {
+                        node.pods.forEach(pod => {
+                            if (isDeploymentPod(pod, deployment)) {
+                                deploymentPods.push({...pod, nodeName: node.name, nodeIP: node.internal_ip});
+                                if (!nodeDistribution[node.name]) {
+                                    nodeDistribution[node.name] = {
+                                        name: node.name,
+                                        ip: node.internal_ip,
+                                        type: 'control-plane',
+                                        pods: []
+                                    };
+                                }
+                                nodeDistribution[node.name].pods.push(pod);
+                            }
+                        });
+                    }
+                });
+            }
+            
+            if (clusterData.worker_pools) {
+                Object.values(clusterData.worker_pools).forEach(pool => {
+                    pool.forEach(node => {
+                        if (node.pods) {
+                            node.pods.forEach(pod => {
+                                if (isDeploymentPod(pod, deployment)) {
+                                    deploymentPods.push({...pod, nodeName: node.name, nodeIP: node.internal_ip});
+                                    if (!nodeDistribution[node.name]) {
+                                        nodeDistribution[node.name] = {
+                                            name: node.name,
+                                            ip: node.internal_ip,
+                                            type: 'worker',
+                                            pods: []
+                                        };
+                                    }
+                                    nodeDistribution[node.name].pods.push(pod);
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+            
+            const runningPods = deploymentPods.filter(pod => pod.status === 'Running').length;
+            const totalPods = deploymentPods.length;
+            
+            const deploymentId = deployment.name.replace(/[^a-zA-Z0-9]/g, '-');
+            
+            let html = `
+                <div class="deployment-detail-view">
+                    <div class="deployment-header">
+                        <div class="deployment-title">${getDeploymentIcon(deployment.name)} ${deployment.name}</div>
+                        <div class="deployment-info">
+                            Namespace: ${deployment.namespace} | 
+                            Replicas: ${deployment.ready_replicas}/${deployment.replicas} | 
+                            Running Pods: ${runningPods}/${totalPods}
+                        </div>
+                    </div>
+                    
+                    <div class="section-title">📍 Pod Distribution Across Nodes</div>
+                    <div class="pod-distribution">
+            `;
+            
+            Object.values(nodeDistribution).forEach(node => {
+                const nodeRunningPods = node.pods.filter(pod => pod.status === 'Running').length;
+                const nodeTotalPods = node.pods.length;
+                
+                html += `
+                    <div class="node-pod-card">
+                        <div class="node-card-header">
+                            <div class="node-card-name">${node.type === 'control-plane' ? '🎛️' : '⚙️'} ${node.name}</div>
+                            <div class="node-card-ip">${node.ip || 'Unknown IP'}</div>
+                            <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">
+                                ${nodeRunningPods}/${nodeTotalPods} pods running
+                            </div>
+                        </div>
+                        <div class="pod-grid">
+                `;
+                
+                node.pods.forEach(pod => {
+                    const statusClass = pod.status.toLowerCase();
+                    html += `
+                        <div class="pod-card ${statusClass}">
+                            <div class="pod-name" title="${pod.namespace}/${pod.name}">${pod.name}</div>
+                            <div class="pod-status ${statusClass}">${pod.status}</div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (Object.keys(nodeDistribution).length === 0) {
+                html += `
+                    <div class="node-pod-card">
+                        <div class="node-card-header">
+                            <div class="node-card-name">No Pods Found</div>
+                            <div class="node-card-ip">This deployment has no running pods</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+        
+        function isDeploymentPod(pod, deployment) {
+            // Check if pod belongs to this deployment by name pattern or labels
+            if (pod.name.includes(deployment.name)) return true;
+            
+            // Check labels if available
+            if (pod.labels && deployment.selector) {
+                for (const [key, value] of Object.entries(deployment.selector)) {
+                    if (pod.labels[key] === value) return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        function isSystemDeployment(deployment) {
+            // Define system namespaces
+            const systemNamespaces = [
+                'kube-system',
+                'kube-public',
+                'kube-node-lease',
+                'kommander',
+                'kommander-flux',
+                'gatekeeper-system',
+                'cert-manager',
+                'metallb-system',
+                'ingress-nginx',
+                'monitoring',
+                'logging',
+                'velero',
+                'istio-system',
+                'linkerd',
+                'calico-system',
+                'tigera-operator',
+                'ntnx-system',
+                'nutanix-platform'
+            ];
+            
+            // Check if deployment is in a system namespace
+            if (systemNamespaces.includes(deployment.namespace)) {
+                return true;
+            }
+            
+            // Check deployment name patterns
+            const systemDeploymentPrefixes = [
+                'kube-',
+                'coredns',
+                'calico-',
+                'tigera-',
+                'metallb-',
+                'ingress-',
+                'cert-manager',
+                'prometheus',
+                'grafana',
+                'alertmanager',
+                'node-exporter',
+                'kube-state-metrics',
+                'metrics-server'
+            ];
+            
+            const deploymentName = deployment.name.toLowerCase();
+            return systemDeploymentPrefixes.some(prefix => deploymentName.startsWith(prefix));
+        }
+        
+        function switchTab(appName) {
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.app-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.app-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            document.querySelector(`[data-app="${appName}"]`).classList.add('active');
+            document.getElementById(`${appName}-content`).classList.add('active');
+        }
+        
+        function showDeploymentView(deploymentId) {
+            switchTab(deploymentId);
+        }
+        
+        function isSystemPod(pod) {
+            // Define system namespaces and pod name patterns
+            const systemNamespaces = [
+                'kube-system',
+                'kube-public',
+                'kube-node-lease',
+                'kommander',
+                'kommander-flux',
+                'gatekeeper-system',
+                'cert-manager',
+                'metallb-system',
+                'ingress-nginx',
+                'monitoring',
+                'logging',
+                'velero',
+                'istio-system',
+                'linkerd',
+                'calico-system',
+                'tigera-operator',
+                'ntnx-system',
+                'nutanix-platform'
+            ];
+            
+            const systemPodPrefixes = [
+                'kube-',
+                'coredns',
+                'etcd',
+                'calico-',
+                'tigera-',
+                'metallb-',
+                'nginx-',
+                'cert-manager',
+                'prometheus-',
+                'grafana-',
+                'alertmanager-',
+                'node-exporter',
+                'kube-state-metrics',
+                'fluentd-',
+                'fluent-bit-',
+                'velero-',
+                'istio-',
+                'linkerd-',
+                'blackbox-exporter',
+                'csi-snapshot-',
+                'kubernetes-events-',
+                'nutanix-csi-'
+            ];
+            
+            // Check if pod is in a system namespace
+            if (systemNamespaces.includes(pod.namespace)) {
+                return true;
+            }
+            
+            // Check if pod name starts with system prefixes
+            return systemPodPrefixes.some(prefix => pod.name.startsWith(prefix));
+        }
+        
+        function togglePodView(viewType) {
+            currentPodView = viewType;
+            
+            // Re-render the architecture with the new filter
+            // Button states will be set correctly during re-render
+            if (clusterData) {
+                renderArchitecture(clusterData);
+            }
+        }
+        
+        function toggleAppView(viewType) {
+            currentAppView = viewType;
+            
+            // Update button states
+            document.getElementById('app-deployments-btn').classList.toggle('active', viewType === 'app');
+            document.getElementById('system-deployments-btn').classList.toggle('active', viewType === 'system');
+            
+            // Re-render the application tabs with the new filter
+            if (clusterData) {
+                createDeploymentTabs(clusterData);
+            }
+        }
+        
+        function filterPodsByView(pods) {
+            if (!pods) return [];
+            
+            if (currentPodView === 'system') {
+                return pods.filter(pod => isSystemPod(pod));
+            } else {
+                return pods.filter(pod => !isSystemPod(pod));
+            }
+        }
+        
+
+        
+        async function refreshData() {
+            console.log('Refreshing cluster data...');
+            const data = await fetchClusterData();
+            if (data) {
+                clusterData = data;
+                updateClusterInfo(data);
+                renderArchitecture(data);
+                createDeploymentTabs(data);
+            }
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+            
+            // Set up overview tab click handler
+            document.querySelector('[data-app="overview"]').addEventListener('click', () => {
+                switchTab('overview');
+            });
+            
+            // Set up auto-refresh every 30 seconds
+            refreshInterval = setInterval(refreshData, 30000);
+        });
+        
+        // Clean up interval when page is unloaded
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>
