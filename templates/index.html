@@ -1945,7 +1945,8 @@
             });
             
             // Set up auto-refresh every 30 seconds
-            refreshInterval = setInterval(refreshData, 30000);
+            // DISABLED: Auto-refresh interferes with user navigation
+            // refreshInterval = setInterval(refreshData, 30000);
         });
         
         // Clean up interval when page is unloaded
