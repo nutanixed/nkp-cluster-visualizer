@@ -15,28 +15,83 @@
         }
         
         :root {
-            --primary-color: #6366f1;
-            --secondary-color: #8b5cf6;
-            --accent-color: #06b6d4;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --error-color: #ef4444;
-            --info-color: #3b82f6;
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f1f5f9;
-            --bg-card: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --border-light: #f1f5f9;
+            /* === BRAND COLORS === */
+            --brand-primary: #4f46e5;      /* Indigo - Main brand color */
+            --brand-secondary: #7c3aed;    /* Purple - Secondary brand */
+            --brand-accent: #0ea5e9;       /* Sky blue - Accent highlights */
+            
+            /* === SEMANTIC COLORS === */
+            --success: #059669;            /* Emerald - Success states */
+            --warning: #d97706;            /* Amber - Warning states */
+            --error: #dc2626;              /* Red - Error states */
+            --info: #0284c7;               /* Light blue - Info states */
+            
+            /* === NEUTRAL PALETTE === */
+            --neutral-50: #f8fafc;         /* Lightest background */
+            --neutral-100: #f1f5f9;        /* Light background */
+            --neutral-200: #e2e8f0;        /* Border light */
+            --neutral-300: #cbd5e1;        /* Border medium */
+            --neutral-400: #94a3b8;        /* Border dark */
+            --neutral-500: #64748b;        /* Text muted */
+            --neutral-600: #475569;        /* Text secondary */
+            --neutral-700: #334155;        /* Text primary */
+            --neutral-800: #1e293b;        /* Text dark */
+            --neutral-900: #0f172a;        /* Text darkest */
+            --white: #ffffff;
+            
+            /* === BACKGROUND SYSTEM === */
+            --bg-primary: var(--neutral-50);
+            --bg-secondary: var(--white);
+            --bg-tertiary: var(--neutral-100);
+            --bg-card: var(--white);
+            --bg-elevated: var(--white);
+            
+            /* === TEXT SYSTEM === */
+            --text-primary: var(--neutral-800);
+            --text-secondary: var(--neutral-600);
+            --text-muted: var(--neutral-500);
+            --text-inverse: var(--white);
+            
+            /* === BORDER SYSTEM === */
+            --border-light: var(--neutral-200);
+            --border-medium: var(--neutral-300);
+            --border-strong: var(--neutral-400);
+            
+            /* === COMPONENT COLORS === */
+            --control-plane: var(--brand-primary);
+            --worker-node: var(--brand-secondary);
+            --deployment: var(--brand-accent);
+            --system-component: var(--neutral-600);
+            
+            /* === INTERACTIVE STATES === */
+            --hover-overlay: rgba(79, 70, 229, 0.08);
+            --active-overlay: rgba(79, 70, 229, 0.12);
+            --focus-ring: rgba(79, 70, 229, 0.3);
+            
+            /* === SHADOWS === */
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            
+            /* === GRADIENTS === */
+            --gradient-brand: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            --gradient-accent: linear-gradient(135deg, var(--brand-accent) 0%, var(--info) 100%);
+            --gradient-success: linear-gradient(135deg, var(--success) 0%, #10b981 100%);
+            --gradient-warning: linear-gradient(135deg, var(--warning) 0%, #f59e0b 100%);
+            --gradient-subtle: linear-gradient(135deg, var(--neutral-100) 0%, var(--neutral-50) 100%);
+            
+            /* === LEGACY COMPATIBILITY === */
+            --primary-color: var(--brand-primary);
+            --secondary-color: var(--brand-secondary);
+            --accent-color: var(--brand-accent);
+            --success-color: var(--success);
+            --warning-color: var(--warning);
+            --error-color: var(--error);
+            --info-color: var(--info);
+            --border-color: var(--border-light);
+            --gradient-primary: var(--gradient-brand);
+            --gradient-secondary: var(--gradient-accent);
         }
         
         body {
@@ -59,12 +114,11 @@
         }
         
         .header {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
+            background: var(--gradient-brand);
+            color: var(--text-inverse);
             padding: 2rem;
             position: relative;
             overflow: hidden;
-            border-bottom: 3px solid var(--primary-color);
         }
         
         .header::before {
@@ -74,8 +128,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(120,85,250,0.05)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            opacity: 0.3;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
         }
         
         .header-content {
@@ -94,7 +148,7 @@
             height: 120px;
             width: auto;
             max-width: 400px;
-            filter: drop-shadow(0 2px 4px rgba(120, 85, 250, 0.2));
+            filter: drop-shadow(0 2px 4px rgba(79, 70, 229, 0.2));
         }
         
         .header h1 {
@@ -118,19 +172,20 @@
         .status-badge {
             display: inline-flex;
             align-items: center;
-            background: rgba(120, 85, 250, 0.1);
-            color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-inverse);
             padding: 0.5rem 1rem;
             border-radius: 50px;
             font-size: 0.875rem;
             font-weight: 500;
-            border: 1px solid rgba(120, 85, 250, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
         }
         
         .status-dot {
             width: 8px;
             height: 8px;
-            background: var(--primary-color);
+            background: var(--text-inverse);
             border-radius: 50%;
             margin-right: 0.5rem;
             animation: pulse 2s infinite;
@@ -153,7 +208,7 @@
             content: '';
             width: 4px;
             height: 24px;
-            background: var(--accent-color);
+            background: var(--brand-accent);
             border-radius: 2px;
             margin-right: 1rem;
         }
@@ -176,11 +231,12 @@
         
         .cluster-header {
             text-align: center;
-            padding: 1rem;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 8px;
-            margin-bottom: 1rem;
+            padding: 1.5rem;
+            background: var(--gradient-brand);
+            color: var(--text-inverse);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-md);
         }
         
         .cluster-title {
@@ -202,19 +258,32 @@
         }
         
         .refresh-btn {
-            background: var(--primary-color);
-            color: white;
+            background: var(--brand-primary);
+            color: var(--text-inverse);
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
             font-weight: 500;
+            font-size: 0.875rem;
             cursor: pointer;
             transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
         }
         
         .refresh-btn:hover {
-            background: var(--secondary-color);
+            background: var(--brand-secondary);
             transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .refresh-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .refresh-btn:focus {
+            outline: none;
+            box-shadow: var(--shadow-md), 0 0 0 3px var(--focus-ring);
         }
         
         .architecture-flow {
@@ -232,23 +301,23 @@
         }
         
         .service-layer {
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 212, 170, 0.05));
-            border-color: rgba(0, 212, 170, 0.3);
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.08), rgba(5, 150, 105, 0.04));
+            border-color: rgba(5, 150, 105, 0.2);
         }
         
         .deployment-layer {
-            background: linear-gradient(135deg, rgba(120, 85, 250, 0.1), rgba(120, 85, 250, 0.05));
-            border-color: rgba(120, 85, 250, 0.3);
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(14, 165, 233, 0.04));
+            border-color: rgba(14, 165, 233, 0.2);
         }
         
         .control-layer {
-            background: linear-gradient(135deg, rgba(120, 85, 250, 0.1), rgba(120, 85, 250, 0.05));
-            border-color: rgba(120, 85, 250, 0.3);
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(79, 70, 229, 0.04));
+            border-color: rgba(79, 70, 229, 0.2);
         }
         
         .worker-layer {
-            background: linear-gradient(135deg, rgba(255, 59, 48, 0.1), rgba(255, 59, 48, 0.05));
-            border-color: rgba(255, 59, 48, 0.3);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(124, 58, 237, 0.04));
+            border-color: rgba(124, 58, 237, 0.2);
         }
         
         .layer-title {
@@ -277,11 +346,11 @@
             background: var(--bg-card);
             padding: 1.5rem;
             border-radius: 12px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-light);
             text-align: center;
             min-width: 200px;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
             position: relative;
             overflow: hidden;
         }
@@ -293,22 +362,23 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: var(--gradient-primary);
+            background: var(--gradient-brand);
         }
         
         .component:hover {
-            transform: translateY(-4px);
+            transform: translateY(-2px);
             box-shadow: var(--shadow-lg);
+            border-color: var(--border-medium);
         }
         
         .component.control-plane {
-            background: linear-gradient(135deg, var(--primary-color), #9575ff) !important;
-            color: white !important;
+            background: var(--gradient-brand) !important;
+            color: var(--text-inverse) !important;
             padding: 1.5rem;
             border-radius: 12px;
             text-align: center;
             box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-light);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         
@@ -318,14 +388,14 @@
         }
         
         .component.worker-node {
-            background: linear-gradient(135deg, var(--primary-color), #9575ff) !important;
-            color: white !important;
+            background: linear-gradient(135deg, var(--worker-node), var(--brand-secondary)) !important;
+            color: var(--text-inverse) !important;
             padding: 1rem;
             border-radius: 12px;
             text-align: center;
             position: relative;
             box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-light);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         
@@ -335,8 +405,14 @@
         }
         
         .component.control-plane *,
-        .component.worker-node * {
-            color: white !important;
+        .component.worker-node *,
+        .component.deployment * {
+            color: var(--text-inverse) !important;
+        }
+        
+        .component.deployment {
+            background: var(--gradient-accent) !important;
+            color: var(--text-inverse) !important;
         }
         
         .component-icon {
@@ -359,8 +435,10 @@
         .component-explanation {
             font-size: 0.75rem;
             color: var(--text-muted);
-            margin-top: 0.5rem;
-            line-height: 1.4;
+            margin-top: 0.75rem;
+            line-height: 1.5;
+            font-style: italic;
+            opacity: 0.8;
         }
         
         .component-specs {
@@ -380,8 +458,8 @@
         
         .worker-pool-section {
             margin-bottom: 2rem;
-            background: rgba(120, 85, 250, 0.05);
-            border: 1px solid rgba(120, 85, 250, 0.2);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.06), rgba(124, 58, 237, 0.03));
+            border: 1px solid rgba(124, 58, 237, 0.15);
             border-radius: 12px;
             padding: 1.5rem;
         }
@@ -392,13 +470,13 @@
             align-items: center;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid rgba(120, 85, 250, 0.3);
+            border-bottom: 2px solid rgba(124, 58, 237, 0.2);
         }
         
         .pool-title {
             font-size: 1.25rem;
             font-weight: 600;
-            color: var(--primary-color);
+            color: var(--worker-node);
         }
         
         .pool-stats {
@@ -407,8 +485,8 @@
         }
         
         .pool-stat {
-            background: rgba(120, 85, 250, 0.1);
-            border: 1px solid rgba(120, 85, 250, 0.3);
+            background: rgba(124, 58, 237, 0.1);
+            border: 1px solid rgba(124, 58, 237, 0.2);
             border-radius: 6px;
             padding: 0.5rem 1rem;
             font-size: 0.875rem;
@@ -473,14 +551,19 @@
         }
         
         .toggle-btn:hover {
-            background: rgba(120, 85, 250, 0.1);
-            color: var(--primary-color);
+            background: var(--hover-overlay);
+            color: var(--brand-primary);
         }
         
         .toggle-btn.active {
-            background: var(--primary-color);
-            color: white;
+            background: var(--brand-primary);
+            color: var(--text-inverse);
             box-shadow: var(--shadow-sm);
+        }
+        
+        .toggle-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--focus-ring);
         }
         
         .control-plane-grid {
@@ -491,7 +574,7 @@
         }
         
         .control-plane-detailed {
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6) !important;
+            background: var(--gradient-brand) !important;
             color: white !important;
             padding: 2rem;
             border-radius: 16px;
@@ -684,9 +767,9 @@
         .app-selector {
             margin-bottom: 2rem;
             padding: 1.5rem;
-            background: rgba(120, 85, 250, 0.05);
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.06), rgba(79, 70, 229, 0.03));
             border-radius: 12px;
-            border: 1px solid rgba(120, 85, 250, 0.2);
+            border: 1px solid rgba(79, 70, 229, 0.15);
         }
         
         .selector-title {
@@ -723,14 +806,19 @@
         }
         
         .app-tab:hover {
-            background: rgba(120, 85, 250, 0.1);
-            color: var(--primary-color);
+            background: var(--hover-overlay);
+            color: var(--brand-primary);
         }
         
         .app-tab.active {
-            background: var(--primary-color);
-            color: white;
+            background: var(--brand-primary);
+            color: var(--text-inverse);
             box-shadow: var(--shadow-sm);
+        }
+        
+        .app-tab:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--focus-ring);
         }
         
         #dynamic-app-tabs {
@@ -748,8 +836,8 @@
         }
         
         .external-layer {
-            background: linear-gradient(135deg, rgba(255, 149, 0, 0.1), rgba(255, 149, 0, 0.05));
-            border-color: rgba(255, 149, 0, 0.3);
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.08), rgba(217, 119, 6, 0.04));
+            border-color: rgba(217, 119, 6, 0.2);
         }
         
         .deployment-detail-view {
@@ -762,11 +850,12 @@
         
         .deployment-header {
             text-align: center;
-            padding: 1rem;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 8px;
+            padding: 1.5rem;
+            background: var(--gradient-brand);
+            color: var(--text-inverse);
+            border-radius: 12px;
             margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
         }
         
         .deployment-title {
@@ -828,8 +917,8 @@
         }
         
         .pod-card {
-            background: rgba(120, 85, 250, 0.1);
-            border: 1px solid rgba(120, 85, 250, 0.3);
+            background: rgba(79, 70, 229, 0.08);
+            border: 1px solid rgba(79, 70, 229, 0.2);
             border-radius: 8px;
             padding: 1rem;
             text-align: center;
@@ -838,22 +927,22 @@
         
         .pod-card:hover {
             transform: scale(1.02);
-            background: rgba(120, 85, 250, 0.15);
+            background: rgba(79, 70, 229, 0.12);
         }
         
         .pod-card.running {
-            border-color: var(--success-color);
-            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            background: rgba(5, 150, 105, 0.1);
         }
         
         .pod-card.pending {
-            border-color: var(--warning-color);
-            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+            background: rgba(217, 119, 6, 0.1);
         }
         
         .pod-card.failed {
-            border-color: var(--error-color);
-            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            background: rgba(220, 38, 38, 0.1);
         }
         
         .pod-name {
@@ -998,6 +1087,177 @@
             body {
                 padding: 0;
             }
+        }
+        
+        /* Replica Management Styles */
+        .replica-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+        }
+        
+        .replica-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 60px;
+        }
+        
+        .replica-input {
+            width: 60px;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+        
+        .replica-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .replica-btn.scale {
+            background: var(--brand-primary);
+            color: var(--text-inverse);
+        }
+        
+        .replica-btn.scale:hover {
+            background: var(--brand-secondary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .replica-btn.scale:disabled {
+            background: linear-gradient(135deg, var(--text-muted), var(--text-muted));
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.6;
+        }
+        
+        .replica-btn.quick {
+            background: var(--brand-primary);
+            color: var(--text-inverse);
+            padding: 0.4rem 0.8rem;
+            min-width: 36px;
+            border-radius: 6px;
+        }
+        
+        .replica-btn.quick:hover {
+            background: var(--brand-secondary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .replica-status {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+        
+        .replica-status.success {
+            color: var(--success-color);
+        }
+        
+        .replica-status.error {
+            color: var(--error-color);
+        }
+        
+        .replica-status.loading {
+            color: var(--warning-color);
+        }
+        
+        .replica-status.warning {
+            color: var(--warning-color);
+            font-weight: 600;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 0.25rem;
+            margin-left: 0.5rem;
+        }
+        
+        .deployment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .deployment-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .deployment-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .action-btn.refresh {
+            background: var(--bg-elevated);
+            color: var(--brand-primary);
+            border: 2px solid var(--brand-primary);
+        }
+        
+        .action-btn.refresh:hover {
+            background: var(--brand-primary);
+            color: var(--text-inverse);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: var(--success-color);
+        }
+        
+        .notification.error {
+            background: var(--error-color);
+        }
+        
+        .notification.info {
+            background: var(--info-color);
         }
     </style>
 </head>
@@ -1692,12 +1952,46 @@
             let html = `
                 <div class="deployment-detail-view">
                     <div class="deployment-header">
-                        <div class="deployment-title">${getDeploymentIcon(deployment.name)} ${deployment.name}</div>
-                        <div class="deployment-info">
-                            Namespace: ${deployment.namespace} | 
-                            Replicas: ${deployment.ready_replicas}/${deployment.replicas} | 
-                            Running Pods: ${runningPods}/${totalPods}
+                        <div>
+                            <div class="deployment-title">${getDeploymentIcon(deployment.name)} ${deployment.name}</div>
+                            <div class="deployment-info">
+                                Namespace: ${deployment.namespace} | 
+                                Replicas: ${deployment.ready_replicas}/${deployment.replicas} | 
+                                Running Pods: ${runningPods}/${totalPods}
+                            </div>
                         </div>
+                        <div class="deployment-actions">
+                            <button class="action-btn refresh" onclick="refreshDeploymentData('${deployment.namespace}', '${deployment.name}')">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Replica Management Controls -->
+                    <div class="replica-controls">
+                        <span class="replica-label">Replicas:</span>
+                        <input type="number" 
+                               class="replica-input" 
+                               id="replica-input-${deploymentId}" 
+                               value="${deployment.replicas}" 
+                               min="0" 
+                               max="20">
+                        <div class="quick-actions">
+                            <button class="replica-btn quick" onclick="scaleDeploymentQuick('${deployment.namespace}', '${deployment.name}', 0)" title="Scale to 0">0</button>
+                            <button class="replica-btn quick" onclick="scaleDeploymentQuick('${deployment.namespace}', '${deployment.name}', 1)" title="Scale to 1">1</button>
+                            <button class="replica-btn quick" onclick="scaleDeploymentQuick('${deployment.namespace}', '${deployment.name}', 3)" title="Scale to 3">3</button>
+                            <button class="replica-btn quick" onclick="scaleDeploymentQuick('${deployment.namespace}', '${deployment.name}', 5)" title="Scale to 5">5</button>
+                        </div>
+                        <button class="replica-btn scale" 
+                                id="scale-btn-${deploymentId}"
+                                onclick="scaleDeploymentFromInput('${deployment.namespace}', '${deployment.name}', '${deploymentId}')">
+                            Scale
+                        </button>
+                        <span class="replica-status ${deployment.ready_replicas === deployment.replicas ? 'success' : 'loading'}" id="replica-status-${deploymentId}">
+                            ${deployment.ready_replicas === deployment.replicas ? 
+                                `✅ ${deployment.ready_replicas}/${deployment.replicas} Ready` : 
+                                `⏳ ${deployment.ready_replicas}/${deployment.replicas} Ready`}
+                        </span>
                     </div>
                     
                     <div class="section-title">📍 Pod Distribution Across Nodes</div>
@@ -1756,13 +2050,37 @@
         }
         
         function isDeploymentPod(pod, deployment) {
-            // Check if pod belongs to this deployment by name pattern or labels
-            if (pod.name.includes(deployment.name)) return true;
+            // First check if namespaces match
+            if (pod.namespace !== deployment.namespace) {
+                return false;
+            }
             
-            // Check labels if available
+            // First, try to match using labels (most reliable)
             if (pod.labels && deployment.selector) {
+                let allLabelsMatch = true;
                 for (const [key, value] of Object.entries(deployment.selector)) {
-                    if (pod.labels[key] === value) return true;
+                    if (pod.labels[key] !== value) {
+                        allLabelsMatch = false;
+                        break;
+                    }
+                }
+                if (allLabelsMatch && Object.keys(deployment.selector).length > 0) {
+                    return true;
+                }
+            }
+            
+            // Fallback to name pattern matching, but be more precise
+            // Pod names typically follow pattern: deployment-name-replicaset-hash-pod-hash
+            // We need to ensure the pod name starts with deployment name followed by a dash
+            // and that it's not just a substring match
+            const expectedPrefix = deployment.name + '-';
+            if (pod.name.startsWith(expectedPrefix)) {
+                // Additional check: make sure it's not a partial match
+                // The character after deployment name should be a dash followed by replicaset hash
+                const afterPrefix = pod.name.substring(expectedPrefix.length);
+                // ReplicaSet hash is typically alphanumeric, so check if it starts with alphanumeric
+                if (afterPrefix.match(/^[a-z0-9]/)) {
+                    return true;
                 }
             }
             
@@ -1923,12 +2241,27 @@
         }
         
         async function refreshData() {
+            // Store the currently active tab before refreshing
+            const activeTab = document.querySelector('.app-tab.active');
+            const currentActiveApp = activeTab ? activeTab.getAttribute('data-app') : 'overview';
+            
             const data = await fetchClusterData();
             if (data) {
                 clusterData = data;
                 updateClusterInfo(data);
                 renderArchitecture(data);
                 createDeploymentTabs(data);
+                
+                // Restore the previously active tab after a short delay to ensure DOM is updated
+                setTimeout(() => {
+                    const tabToActivate = document.querySelector(`[data-app="${currentActiveApp}"]`);
+                    if (tabToActivate) {
+                        switchTab(currentActiveApp);
+                    } else {
+                        // If the previously active tab no longer exists, default to overview
+                        switchTab('overview');
+                    }
+                }, 100);
             }
         }
         
@@ -1947,6 +2280,247 @@
         });
         
         // Note: Auto-refresh cleanup code removed since auto-refresh is disabled
+        
+        // Replica Management Functions
+        async function scaleDeployment(namespace, deploymentName, replicas) {
+            const deploymentId = deploymentName.replace(/[^a-zA-Z0-9]/g, '-');
+            const statusElement = document.getElementById(`replica-status-${deploymentId}`);
+            const scaleButton = document.getElementById(`scale-btn-${deploymentId}`);
+            const inputElement = document.getElementById(`replica-input-${deploymentId}`);
+            
+            try {
+                // Update UI to show loading state
+                if (statusElement) {
+                    statusElement.textContent = 'Scaling...';
+                    statusElement.className = 'replica-status loading';
+                }
+                if (scaleButton) {
+                    scaleButton.disabled = true;
+                    scaleButton.textContent = 'Scaling...';
+                }
+                
+                // Update input to show the target replicas
+                if (inputElement) {
+                    inputElement.value = replicas;
+                }
+                
+                const response = await fetch(`/api/deployments/${namespace}/${deploymentName}/scale`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ replicas: parseInt(replicas) })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Success - start polling for actual pod status
+                    if (statusElement) {
+                        statusElement.textContent = `Scaling to ${replicas}...`;
+                        statusElement.className = 'replica-status loading';
+                    }
+                    showNotification(`Scaling ${deploymentName} to ${replicas} replicas...`, 'info');
+                    
+                    // Start continuous polling until all replicas are ready
+                    pollDeploymentStatus(namespace, deploymentName, parseInt(replicas));
+                } else {
+                    // Error
+                    const errorMsg = result.error || 'Failed to scale deployment';
+                    if (statusElement) {
+                        statusElement.textContent = 'Scale failed';
+                        statusElement.className = 'replica-status error';
+                    }
+                    showNotification(`Error scaling ${deploymentName}: ${errorMsg}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error scaling deployment:', error);
+                if (statusElement) {
+                    statusElement.textContent = 'Scale failed';
+                    statusElement.className = 'replica-status error';
+                }
+                showNotification(`Error scaling ${deploymentName}: ${error.message}`, 'error');
+            } finally {
+                // Re-enable the scale button
+                if (scaleButton) {
+                    scaleButton.disabled = false;
+                    scaleButton.textContent = 'Scale';
+                }
+                
+                // Reset status after 5 seconds
+                setTimeout(() => {
+                    if (statusElement && statusElement.className.includes('success')) {
+                        statusElement.textContent = 'Ready';
+                        statusElement.className = 'replica-status';
+                    }
+                }, 5000);
+            }
+        }
+        
+        function scaleDeploymentFromInput(namespace, deploymentName, deploymentId) {
+            const inputElement = document.getElementById(`replica-input-${deploymentId}`);
+            if (inputElement) {
+                const replicas = parseInt(inputElement.value);
+                if (isNaN(replicas) || replicas < 0) {
+                    showNotification('Please enter a valid number of replicas (0 or greater)', 'error');
+                    return;
+                }
+                scaleDeployment(namespace, deploymentName, replicas);
+            }
+        }
+        
+        function scaleDeploymentQuick(namespace, deploymentName, replicas) {
+            // Update the input field to show the target replicas
+            const deploymentId = deploymentName.replace(/[^a-zA-Z0-9]/g, '-');
+            const inputElement = document.getElementById(`replica-input-${deploymentId}`);
+            if (inputElement) {
+                inputElement.value = replicas;
+            }
+            
+            // Call the main scaling function
+            scaleDeployment(namespace, deploymentName, replicas);
+        }
+        
+        async function pollDeploymentStatus(namespace, deploymentName, targetReplicas) {
+            const deploymentId = deploymentName.replace(/[^a-zA-Z0-9]/g, '-');
+            const statusElement = document.getElementById(`replica-status-${deploymentId}`);
+            let pollCount = 0;
+            const maxPolls = 60; // Poll for up to 5 minutes (60 * 5 seconds)
+            
+            const poll = async () => {
+                try {
+                    const response = await fetch(`/api/deployments/${namespace}/${deploymentName}/replicas`);
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        const readyReplicas = result.ready_replicas || 0;
+                        const desiredReplicas = result.desired_replicas || 0;
+                        const availableReplicas = result.available_replicas || 0;
+                        
+                        if (statusElement) {
+                            if (readyReplicas === desiredReplicas && desiredReplicas === targetReplicas) {
+                                // All replicas are ready
+                                statusElement.textContent = `✅ ${readyReplicas}/${desiredReplicas} Ready`;
+                                statusElement.className = 'replica-status success';
+                                showNotification(`Successfully scaled ${deploymentName} to ${targetReplicas} replicas`, 'success');
+                                
+                                // Refresh the entire cluster data to show updated pod counts
+                                refreshData();
+                                return; // Stop polling
+                            } else if (desiredReplicas === targetReplicas) {
+                                // Scaling in progress
+                                let statusText = `⏳ ${readyReplicas}/${desiredReplicas} Ready`;
+                                if (availableReplicas > readyReplicas) {
+                                    statusText += ` (${availableReplicas - readyReplicas} Starting)`;
+                                }
+                                statusElement.textContent = statusText;
+                                statusElement.className = 'replica-status loading';
+                            } else {
+                                // Still updating desired count
+                                statusElement.textContent = `🔄 Updating to ${targetReplicas}...`;
+                                statusElement.className = 'replica-status loading';
+                            }
+                        }
+                        
+                        // Continue polling if not all replicas are ready
+                        pollCount++;
+                        if (pollCount < maxPolls) {
+                            setTimeout(poll, 3000); // Poll every 3 seconds
+                        } else {
+                            // Timeout - show final status
+                            if (statusElement) {
+                                statusElement.textContent = `⚠️ ${readyReplicas}/${desiredReplicas} Ready (Timeout)`;
+                                statusElement.className = 'replica-status warning';
+                            }
+                            showNotification(`Scaling ${deploymentName} may still be in progress`, 'warning');
+                        }
+                    } else {
+                        console.error('Failed to poll deployment status:', result.error);
+                        if (statusElement) {
+                            statusElement.textContent = 'Status unknown';
+                            statusElement.className = 'replica-status error';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error polling deployment status:', error);
+                    if (statusElement) {
+                        statusElement.textContent = 'Status unknown';
+                        statusElement.className = 'replica-status error';
+                    }
+                }
+            };
+            
+            // Start polling immediately
+            poll();
+        }
+
+        async function refreshDeploymentData(namespace, deploymentName) {
+            try {
+                const response = await fetch(`/api/deployments/${namespace}/${deploymentName}/replicas`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    const deploymentId = deploymentName.replace(/[^a-zA-Z0-9]/g, '-');
+                    const inputElement = document.getElementById(`replica-input-${deploymentId}`);
+                    const statusElement = document.getElementById(`replica-status-${deploymentId}`);
+                    
+                    if (inputElement) {
+                        inputElement.value = result.desired_replicas;
+                    }
+                    
+                    if (statusElement) {
+                        const readyReplicas = result.ready_replicas || 0;
+                        const desiredReplicas = result.desired_replicas || 0;
+                        
+                        if (readyReplicas === desiredReplicas) {
+                            statusElement.textContent = `✅ ${readyReplicas}/${desiredReplicas} Ready`;
+                            statusElement.className = 'replica-status success';
+                        } else {
+                            statusElement.textContent = `⏳ ${readyReplicas}/${desiredReplicas} Ready`;
+                            statusElement.className = 'replica-status loading';
+                        }
+                    }
+                    
+                    // Refresh the entire cluster data to update the UI
+                    refreshData();
+                } else {
+                    console.error('Failed to refresh deployment data:', result.error);
+                }
+            } catch (error) {
+                console.error('Error refreshing deployment data:', error);
+            }
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Remove any existing notifications
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            // Add to page
+            document.body.appendChild(notification);
+            
+            // Show notification
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            // Hide and remove notification after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 5000);
+        }
     </script>
 </body>
 </html>
