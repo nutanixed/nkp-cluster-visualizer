@@ -216,6 +216,44 @@ def index():
 def cluster_api():
     return jsonify(get_cluster_data())
 
+@app.route('/api/health')
+def health_check():
+    """Health check endpoint for Kubernetes probes"""
+    try:
+        # Simple health check - try to connect to Kubernetes API
+        v1.list_node(limit=1)
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'version': '2.0.0'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat(),
+            'version': '2.0.0'
+        }), 500
+
+@app.route('/api/refresh', methods=['POST'])
+def refresh_data():
+    """Force refresh cluster data"""
+    try:
+        data = get_cluster_data()
+        return jsonify({
+            'status': 'success',
+            'message': 'Data refreshed successfully',
+            'timestamp': data.get('last_updated'),
+            'nodes': data.get('total_nodes', 0),
+            'pods': data.get('total_pods', 0)
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to refresh data: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
 @app.route('/api/deployments/<namespace>/<deployment_name>/scale', methods=['POST'])
 def scale_deployment(namespace, deployment_name):
     """Scale a deployment to the specified number of replicas"""
