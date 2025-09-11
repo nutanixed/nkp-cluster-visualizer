@@ -245,15 +245,7 @@ class ClusterDataCollector:
                     'ip': pod.status.pod_ip,
                     'host_ip': pod.status.host_ip,
                     'restart_count': sum(container.restart_count for container in (pod.status.container_statuses or [])),
-                    'containers': [
-                        {
-                            'name': container.name,
-                            'image': container.image,
-                            'ready': container.ready if pod.status.container_statuses else False,
-                            'restart_count': container.restart_count if pod.status.container_statuses else 0
-                        }
-                        for container in (pod.spec.containers or [])
-                    ],
+                    'containers': self._get_container_info(pod),
                     'labels': pod.metadata.labels or {},
                     'created': pod.metadata.creation_timestamp.isoformat() if pod.metadata.creation_timestamp else None,
                     'conditions': [
@@ -268,6 +260,24 @@ class ClusterDataCollector:
         except ApiException as e:
             logger.error(f"Error fetching pods: {e}")
             return []
+    
+    def _get_container_info(self, pod):
+        """Get container information with proper status mapping"""
+        containers = []
+        spec_containers = pod.spec.containers or []
+        status_containers = {cs.name: cs for cs in (pod.status.container_statuses or [])}
+        
+        for container in spec_containers:
+            status = status_containers.get(container.name)
+            container_info = {
+                'name': container.name,
+                'image': container.image,
+                'ready': status.ready if status else False,
+                'restart_count': status.restart_count if status else 0
+            }
+            containers.append(container_info)
+        
+        return containers
     
     def _get_system_info(self):
         """Get system-level information"""
