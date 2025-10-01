@@ -42,6 +42,13 @@ python cluster_api.py
 ### Kubernetes Deployment
 The application is designed to run in Kubernetes with proper RBAC permissions.
 
+**📖 For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md)**
+
+Quick deploy from GitHub:
+```bash
+kubectl apply -f https://raw.githubusercontent.com/nutanixed/nkp-cluster-visualizer/main/k8s/deployment-v2.yaml
+```
+
 ## 🔧 Configuration
 
 Environment variables:
