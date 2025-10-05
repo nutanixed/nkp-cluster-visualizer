@@ -862,6 +862,31 @@
             font-size: 1.5rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .type-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .type-badge.deployment {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .type-badge.statefulset {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
         }
         
         .deployment-info {
@@ -1851,7 +1876,8 @@
                         const tab = document.createElement('button');
                         tab.className = 'app-tab';
                         tab.setAttribute('data-app', deploymentId);
-                        tab.innerHTML = `${icon} ${deployment.name}`;
+                        const typeBadge = deployment.type === 'StatefulSet' ? '<span style="font-size: 0.7em; opacity: 0.7;">⚙️</span> ' : '';
+                        tab.innerHTML = `${icon} ${typeBadge}${deployment.name}`;
                         tab.onclick = () => switchTab(deploymentId);
                         dynamicTabsContainer.appendChild(tab);
                         
@@ -1949,11 +1975,14 @@
             
             const deploymentId = deployment.name.replace(/[^a-zA-Z0-9]/g, '-');
             
+            const resourceType = deployment.type || 'Deployment';
+            const typeBadge = resourceType === 'StatefulSet' ? '<span class="type-badge statefulset">StatefulSet</span>' : '<span class="type-badge deployment">Deployment</span>';
+            
             let html = `
                 <div class="deployment-detail-view">
                     <div class="deployment-header">
                         <div>
-                            <div class="deployment-title">${getDeploymentIcon(deployment.name)} ${deployment.name}</div>
+                            <div class="deployment-title">${getDeploymentIcon(deployment.name)} ${deployment.name} ${typeBadge}</div>
                             <div class="deployment-info">
                                 Namespace: ${deployment.namespace} | 
                                 Replicas: ${deployment.ready_replicas}/${deployment.replicas} | 

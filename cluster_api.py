@@ -34,6 +34,9 @@ def get_cluster_data():
         # Get deployments
         deployments = apps_v1.list_deployment_for_all_namespaces()
         
+        # Get statefulsets
+        statefulsets = apps_v1.list_stateful_set_for_all_namespaces()
+        
         # Get services
         services = v1.list_service_for_all_namespaces()
         
@@ -131,9 +134,24 @@ def get_cluster_data():
                 'ready_replicas': deployment.status.ready_replicas or 0,
                 'available_replicas': deployment.status.available_replicas or 0,
                 'labels': deployment.metadata.labels or {},
-                'selector': deployment.spec.selector.match_labels or {}
+                'selector': deployment.spec.selector.match_labels or {},
+                'type': 'Deployment'
             }
             deployment_info.append(dep_info)
+        
+        # Process statefulsets
+        for statefulset in statefulsets.items:
+            sts_info = {
+                'name': statefulset.metadata.name,
+                'namespace': statefulset.metadata.namespace,
+                'replicas': statefulset.spec.replicas or 0,
+                'ready_replicas': statefulset.status.ready_replicas or 0,
+                'available_replicas': statefulset.status.ready_replicas or 0,  # StatefulSets don't have available_replicas
+                'labels': statefulset.metadata.labels or {},
+                'selector': statefulset.spec.selector.match_labels or {},
+                'type': 'StatefulSet'
+            }
+            deployment_info.append(sts_info)
         
         # Process services
         service_info = []
@@ -256,7 +274,7 @@ def refresh_data():
 
 @app.route('/api/deployments/<namespace>/<deployment_name>/scale', methods=['POST'])
 def scale_deployment(namespace, deployment_name):
-    """Scale a deployment to the specified number of replicas"""
+    """Scale a deployment or statefulset to the specified number of replicas"""
     try:
         data = request.get_json()
         if not data or 'replicas' not in data:
@@ -266,71 +284,117 @@ def scale_deployment(namespace, deployment_name):
         if replicas < 0:
             return jsonify({'error': 'Replicas must be non-negative'}), 400
         
-        # Get the current deployment
+        # Try to find as a deployment first
+        resource_type = 'Deployment'
         try:
             deployment = apps_v1.read_namespaced_deployment(
                 name=deployment_name,
                 namespace=namespace
             )
+            # Update the replica count
+            deployment.spec.replicas = replicas
+            
+            # Apply the update
+            apps_v1.patch_namespaced_deployment(
+                name=deployment_name,
+                namespace=namespace,
+                body=deployment
+            )
         except client.exceptions.ApiException as e:
             if e.status == 404:
-                return jsonify({'error': f'Deployment {deployment_name} not found in namespace {namespace}'}), 404
-            raise
+                # Not a deployment, try as a statefulset
+                resource_type = 'StatefulSet'
+                try:
+                    statefulset = apps_v1.read_namespaced_stateful_set(
+                        name=deployment_name,
+                        namespace=namespace
+                    )
+                    # Update the replica count
+                    statefulset.spec.replicas = replicas
+                    
+                    # Apply the update
+                    apps_v1.patch_namespaced_stateful_set(
+                        name=deployment_name,
+                        namespace=namespace,
+                        body=statefulset
+                    )
+                except client.exceptions.ApiException as e2:
+                    if e2.status == 404:
+                        return jsonify({'error': f'Deployment or StatefulSet {deployment_name} not found in namespace {namespace}'}), 404
+                    raise
+            else:
+                raise
         
-        # Update the replica count
-        deployment.spec.replicas = replicas
-        
-        # Apply the update
-        apps_v1.patch_namespaced_deployment(
-            name=deployment_name,
-            namespace=namespace,
-            body=deployment
-        )
-        
-        print(f"Successfully scaled deployment {namespace}/{deployment_name} to {replicas} replicas")
+        print(f"Successfully scaled {resource_type} {namespace}/{deployment_name} to {replicas} replicas")
         
         return jsonify({
             'success': True,
-            'message': f'Deployment {deployment_name} scaled to {replicas} replicas',
+            'message': f'{resource_type} {deployment_name} scaled to {replicas} replicas',
             'deployment': deployment_name,
             'namespace': namespace,
-            'replicas': replicas
+            'replicas': replicas,
+            'type': resource_type
         })
         
     except ValueError:
         return jsonify({'error': 'Invalid replicas value - must be a number'}), 400
     except Exception as e:
-        print(f"Error scaling deployment {namespace}/{deployment_name}: {e}")
+        print(f"Error scaling {namespace}/{deployment_name}: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({'error': f'Failed to scale deployment: {str(e)}'}), 500
+        return jsonify({'error': f'Failed to scale: {str(e)}'}), 500
 
 @app.route('/api/deployments/<namespace>/<deployment_name>/replicas', methods=['GET'])
 def get_deployment_replicas(namespace, deployment_name):
-    """Get current replica information for a deployment"""
+    """Get current replica information for a deployment or statefulset"""
     try:
-        deployment = apps_v1.read_namespaced_deployment(
-            name=deployment_name,
-            namespace=namespace
-        )
-        
-        return jsonify({
-            'deployment': deployment_name,
-            'namespace': namespace,
-            'desired_replicas': deployment.spec.replicas or 0,
-            'ready_replicas': deployment.status.ready_replicas or 0,
-            'available_replicas': deployment.status.available_replicas or 0,
-            'updated_replicas': deployment.status.updated_replicas or 0,
-            'unavailable_replicas': deployment.status.unavailable_replicas or 0
-        })
+        # Try to find as a deployment first
+        resource_type = 'Deployment'
+        try:
+            deployment = apps_v1.read_namespaced_deployment(
+                name=deployment_name,
+                namespace=namespace
+            )
+            
+            return jsonify({
+                'deployment': deployment_name,
+                'namespace': namespace,
+                'type': resource_type,
+                'desired_replicas': deployment.spec.replicas or 0,
+                'ready_replicas': deployment.status.ready_replicas or 0,
+                'available_replicas': deployment.status.available_replicas or 0,
+                'updated_replicas': deployment.status.updated_replicas or 0,
+                'unavailable_replicas': deployment.status.unavailable_replicas or 0
+            })
+        except client.exceptions.ApiException as e:
+            if e.status == 404:
+                # Not a deployment, try as a statefulset
+                resource_type = 'StatefulSet'
+                statefulset = apps_v1.read_namespaced_stateful_set(
+                    name=deployment_name,
+                    namespace=namespace
+                )
+                
+                return jsonify({
+                    'deployment': deployment_name,
+                    'namespace': namespace,
+                    'type': resource_type,
+                    'desired_replicas': statefulset.spec.replicas or 0,
+                    'ready_replicas': statefulset.status.ready_replicas or 0,
+                    'available_replicas': statefulset.status.ready_replicas or 0,  # StatefulSets don't have available_replicas
+                    'updated_replicas': statefulset.status.updated_replicas or 0,
+                    'current_replicas': statefulset.status.current_replicas or 0
+                })
+            else:
+                raise
         
     except client.exceptions.ApiException as e:
         if e.status == 404:
-            return jsonify({'error': f'Deployment {deployment_name} not found in namespace {namespace}'}), 404
-        return jsonify({'error': f'Failed to get deployment info: {str(e)}'}), 500
+            return jsonify({'error': f'Deployment or StatefulSet {deployment_name} not found in namespace {namespace}'}), 404
+        return jsonify({'error': f'Failed to get resource info: {str(e)}'}), 500
     except Exception as e:
-        print(f"Error getting deployment info {namespace}/{deployment_name}: {e}")
-        return jsonify({'error': f'Failed to get deployment info: {str(e)}'}), 500
+        print(f"Error getting resource info {namespace}/{deployment_name}: {e}")
+        return jsonify({'error': f'Failed to get resource info: {str(e)}'}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('BIND_PORT', 9090))
