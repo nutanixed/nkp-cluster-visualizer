@@ -243,14 +243,14 @@ def health_check():
         return jsonify({
             'status': 'healthy',
             'timestamp': datetime.now().isoformat(),
-            'version': '2.0.0'
+            'version': '2.1.0'
         })
     except Exception as e:
         return jsonify({
             'status': 'unhealthy',
             'error': str(e),
             'timestamp': datetime.now().isoformat(),
-            'version': '2.0.0'
+            'version': '2.1.0'
         }), 500
 
 @app.route('/api/refresh', methods=['POST'])
