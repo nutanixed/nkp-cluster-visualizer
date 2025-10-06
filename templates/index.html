@@ -1308,13 +1308,26 @@
             <div class="app-selector">
                 <div class="selector-header">
                     <div class="selector-title">📱 Application View</div>
-                    <div class="app-view-toggle">
-                        <button id="app-deployments-btn" class="toggle-btn active" onclick="toggleAppView('app')">
-                            📱 Application Deployments
-                        </button>
-                        <button id="system-deployments-btn" class="toggle-btn" onclick="toggleAppView('system')">
-                            ⚙️ System Deployments
-                        </button>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="app-view-toggle">
+                            <button id="app-deployments-btn" class="toggle-btn active" onclick="toggleAppView('app')">
+                                📱 Application Deployments
+                            </button>
+                            <button id="system-deployments-btn" class="toggle-btn" onclick="toggleAppView('system')">
+                                ⚙️ System Deployments
+                            </button>
+                        </div>
+                        <div class="app-view-toggle">
+                            <button id="all-resources-btn" class="toggle-btn active" onclick="toggleResourceType('all')">
+                                📦 All Resources
+                            </button>
+                            <button id="deployments-only-btn" class="toggle-btn" onclick="toggleResourceType('deployment')">
+                                🚀 Deployments Only
+                            </button>
+                            <button id="statefulsets-only-btn" class="toggle-btn" onclick="toggleResourceType('statefulset')">
+                                ⚙️ StatefulSets Only
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="app-tabs">
@@ -1359,6 +1372,7 @@
         let clusterData = null;
         let currentPodView = 'app'; // 'app' or 'system'
         let currentAppView = 'app'; // 'app' or 'system' for Application View
+        let currentResourceType = 'all'; // 'all', 'deployment', or 'statefulset'
         
         async function fetchClusterData() {
             try {
@@ -1858,13 +1872,28 @@
             dynamicContentContainer.innerHTML = '';
             
             if (data.deployments && data.deployments.length > 0) {
-                // Filter deployments based on current view
+                // Filter deployments based on current view and resource type
                 const filteredDeployments = data.deployments.filter(deployment => {
+                    // First filter by app/system view
+                    let matchesAppView = false;
                     if (currentAppView === 'system') {
-                        return isSystemDeployment(deployment);
+                        matchesAppView = isSystemDeployment(deployment);
                     } else {
-                        return !isSystemDeployment(deployment);
+                        matchesAppView = !isSystemDeployment(deployment);
                     }
+                    
+                    if (!matchesAppView) return false;
+                    
+                    // Then filter by resource type
+                    const deploymentType = deployment.type || 'Deployment';
+                    if (currentResourceType === 'all') {
+                        return true;
+                    } else if (currentResourceType === 'deployment') {
+                        return deploymentType === 'Deployment';
+                    } else if (currentResourceType === 'statefulset') {
+                        return deploymentType === 'StatefulSet';
+                    }
+                    return true;
                 });
                 
                 if (filteredDeployments.length > 0) {
@@ -1898,10 +1927,20 @@
                 } else {
                     // Show message when no deployments match the filter
                     const viewType = currentAppView === 'system' ? 'system' : 'application';
+                    let resourceTypeText = '';
+                    if (currentResourceType === 'deployment') {
+                        resourceTypeText = 'Deployments';
+                    } else if (currentResourceType === 'statefulset') {
+                        resourceTypeText = 'StatefulSets';
+                    } else {
+                        resourceTypeText = 'resources';
+                    }
+                    
                     dynamicContentContainer.innerHTML = `
                         <div class="app-content active" style="text-align: center; padding: 2rem;">
-                            <h3>No ${viewType} deployments found</h3>
-                            <p>There are currently no ${viewType} deployments in this cluster.</p>
+                            <h3>No ${viewType} ${resourceTypeText} found</h3>
+                            <p>There are currently no ${viewType} ${resourceTypeText} in this cluster.</p>
+                            <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 1rem;">Try adjusting the filters above to see different resources.</p>
                         </div>
                     `;
                 }
@@ -2252,6 +2291,20 @@
             // Update button states
             document.getElementById('app-deployments-btn').classList.toggle('active', viewType === 'app');
             document.getElementById('system-deployments-btn').classList.toggle('active', viewType === 'system');
+            
+            // Re-render the application tabs with the new filter
+            if (clusterData) {
+                createDeploymentTabs(clusterData);
+            }
+        }
+        
+        function toggleResourceType(resourceType) {
+            currentResourceType = resourceType;
+            
+            // Update button states
+            document.getElementById('all-resources-btn').classList.toggle('active', resourceType === 'all');
+            document.getElementById('deployments-only-btn').classList.toggle('active', resourceType === 'deployment');
+            document.getElementById('statefulsets-only-btn').classList.toggle('active', resourceType === 'statefulset');
             
             // Re-render the application tabs with the new filter
             if (clusterData) {
