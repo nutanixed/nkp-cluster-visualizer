@@ -6,7 +6,7 @@
     <title>NKP Cluster Visualizer</title>
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         * { 
             margin: 0; 
@@ -15,83 +15,37 @@
         }
         
         :root {
-            /* === BRAND COLORS === */
-            --brand-primary: #4f46e5;      /* Indigo - Main brand color */
-            --brand-secondary: #7c3aed;    /* Purple - Secondary brand */
-            --brand-accent: #0ea5e9;       /* Sky blue - Accent highlights */
-            
-            /* === SEMANTIC COLORS === */
-            --success: #059669;            /* Emerald - Success states */
-            --warning: #d97706;            /* Amber - Warning states */
-            --error: #dc2626;              /* Red - Error states */
-            --info: #0284c7;               /* Light blue - Info states */
-            
-            /* === NEUTRAL PALETTE === */
-            --neutral-50: #f8fafc;         /* Lightest background */
-            --neutral-100: #f1f5f9;        /* Light background */
-            --neutral-200: #e2e8f0;        /* Border light */
-            --neutral-300: #cbd5e1;        /* Border medium */
-            --neutral-400: #94a3b8;        /* Border dark */
-            --neutral-500: #64748b;        /* Text muted */
-            --neutral-600: #475569;        /* Text secondary */
-            --neutral-700: #334155;        /* Text primary */
-            --neutral-800: #1e293b;        /* Text dark */
-            --neutral-900: #0f172a;        /* Text darkest */
+            --brand-primary: #4f46e5;
+            --brand-secondary: #7c3aed;
+            --brand-accent: #0ea5e9;
+            --success: #059669;
+            --warning: #d97706;
+            --error: #dc2626;
+            --info: #0284c7;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-400: #94a3b8;
+            --neutral-500: #64748b;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+            --neutral-900: #0f172a;
             --white: #ffffff;
-            
-            /* === BACKGROUND SYSTEM === */
             --bg-primary: var(--neutral-50);
             --bg-secondary: var(--white);
             --bg-tertiary: var(--neutral-100);
-            --bg-card: var(--white);
-            --bg-elevated: var(--white);
-            
-            /* === TEXT SYSTEM === */
             --text-primary: var(--neutral-800);
             --text-secondary: var(--neutral-600);
             --text-muted: var(--neutral-500);
-            --text-inverse: var(--white);
-            
-            /* === BORDER SYSTEM === */
             --border-light: var(--neutral-200);
             --border-medium: var(--neutral-300);
             --border-strong: var(--neutral-400);
-            
-            /* === COMPONENT COLORS === */
-            --control-plane: var(--brand-primary);
-            --worker-node: var(--brand-secondary);
-            --deployment: var(--brand-accent);
-            --system-component: var(--neutral-600);
-            
-            /* === INTERACTIVE STATES === */
-            --hover-overlay: rgba(79, 70, 229, 0.08);
-            --active-overlay: rgba(79, 70, 229, 0.12);
-            --focus-ring: rgba(79, 70, 229, 0.3);
-            
-            /* === SHADOWS === */
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            
-            /* === GRADIENTS === */
-            --gradient-brand: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
-            --gradient-accent: linear-gradient(135deg, var(--brand-accent) 0%, var(--info) 100%);
-            --gradient-success: linear-gradient(135deg, var(--success) 0%, #10b981 100%);
-            --gradient-warning: linear-gradient(135deg, var(--warning) 0%, #f59e0b 100%);
-            --gradient-subtle: linear-gradient(135deg, var(--neutral-100) 0%, var(--neutral-50) 100%);
-            
-            /* === LEGACY COMPATIBILITY === */
-            --primary-color: var(--brand-primary);
-            --secondary-color: var(--brand-secondary);
-            --accent-color: var(--brand-accent);
-            --success-color: var(--success);
-            --warning-color: var(--warning);
-            --error-color: var(--error);
-            --info-color: var(--info);
-            --border-color: var(--border-light);
-            --gradient-primary: var(--gradient-brand);
-            --gradient-secondary: var(--gradient-accent);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
         
         body {
@@ -104,18 +58,19 @@
         }
         
         .container {
-            max-width: 1600px;
+            max-width: 1800px;
             margin: 0 auto;
             background: var(--bg-secondary);
             border-radius: 16px;
             box-shadow: var(--shadow-xl);
             overflow: hidden;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-light);
         }
         
+        /* ===== HEADER (KEEP SAME) ===== */
         .header {
-            background: var(--gradient-brand);
-            color: var(--text-inverse);
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            color: white;
             padding: 2rem;
             position: relative;
             overflow: hidden;
@@ -137,7 +92,6 @@
             z-index: 1;
         }
         
-        /* Top-right action menu */
         .nav-actions-menu {
             position: absolute;
             top: 1rem;
@@ -161,1201 +115,1086 @@
             font-size: 0.875rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border: none;
         }
 
         .nav-icon-btn:hover {
             background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.3);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .nav-icon-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
         .nav-icon-btn svg {
             flex-shrink: 0;
         }
 
-        .nav-btn-label {
-            white-space: nowrap;
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
-        /* Responsive: Hide labels on smaller screens */
+        .nutanix-logo {
+            width: 200px;
+            height: auto;
+            margin-bottom: 0.5rem;
+        }
+
+        .nutanix-logo .st0 {
+            fill: white;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
         @media (max-width: 768px) {
             .nav-btn-label {
                 display: none;
             }
-            
             .nav-icon-btn {
                 padding: 0.625rem;
             }
         }
         
-        .header-content {
-            position: relative;
-            z-index: 1;
+        /* ===== NEW DASHBOARD LAYOUT ===== */
+        .dashboard {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        /* Filter Bar */
+        .filter-bar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-right: 0.5rem;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-medium);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            border-color: var(--brand-primary);
+            background: var(--neutral-50);
+        }
+        
+        .filter-btn.active {
+            background: var(--brand-primary);
+            color: white;
+            border-color: var(--brand-primary);
+        }
+        
+        .filter-input {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-medium);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            min-width: 200px;
+            transition: all 0.2s;
+        }
+        
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            background: white;
+        }
+        
+        .filter-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--brand-primary);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+        
+        .autocomplete-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+        
+        .autocomplete-item:hover {
+            background: var(--neutral-50);
+        }
+        
+        .autocomplete-item:last-child {
+            border-radius: 0 0 6px 6px;
+        }
+        
+        /* Metrics Overview */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .metric-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+        }
+        
+        .metric-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .metric-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-direction: column;
-            gap: 0.5rem;
-            text-align: center;
-            width: 100%;
-        }
-        
-        .nutanix-logo {
-            height: 120px;
-            width: auto;
-            max-width: 400px;
-            filter: drop-shadow(0 2px 4px rgba(79, 70, 229, 0.2));
-        }
-        
-        .header h1 {
-            font-size: 2.5rem;
+            font-size: 1.25rem;
             font-weight: 700;
-            margin: 0.25rem 0;
-            letter-spacing: -0.025em;
-            text-align: center;
-            width: 100%;
         }
         
-        .subtitle {
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .metric-subtitle {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+        
+        /* Main Content Grid - 50/50 Split */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 1000px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Applications Panel */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            overflow: visible;
+        }
+        
+        .panel-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            background: var(--bg-tertiary);
+        }
+        
+        .panel-title {
             font-size: 1.125rem;
-            font-weight: 400;
-            opacity: 0.9;
-            margin: 0.25rem 0 0.75rem 0;
-            text-align: center;
-            width: 100%;
+            font-weight: 700;
+            color: var(--text-primary);
         }
         
-        .status-badge {
+        .panel-content {
+            padding: 1.5rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        /* Application Card */
+        .app-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+            overflow: visible;
+        }
+        
+        .app-card:hover {
+            border-color: var(--brand-primary);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .app-card.scaling {
+            pointer-events: none;
+        }
+        
+        .app-card .scaling-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            z-index: 10;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .app-card.scaling .scaling-overlay {
+            display: flex;
+        }
+        
+        .scaling-overlay-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-light);
+            border-top-color: var(--brand-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .scaling-overlay-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--brand-primary);
+        }
+        
+        .scaling-overlay-subtext {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .app-card.expanded {
+            border-color: var(--brand-primary);
+            background: var(--neutral-50);
+        }
+        
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .app-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .lb-indicator {
             display: inline-flex;
             align-items: center;
-            background: var(--gradient-brand);
-            color: var(--text-inverse);
-            padding: 0.75rem 1.5rem;
-            border-radius: 50px;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #fbbf24;
+            border-radius: 4px;
+            font-size: 0.625rem;
+            font-weight: 700;
+            color: #92400e;
+            cursor: help;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .lb-indicator:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 6px -1px rgba(251, 191, 36, 0.3);
+        }
+        
+        .lb-indicator.pending {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-color: #f87171;
+            color: #991b1b;
+        }
+        
+        .lb-tooltip {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            background: var(--bg-primary);
+            border: 2px solid #fbbf24;
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 280px;
+            max-width: 320px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+        }
+        
+        .lb-tooltip.pending {
+            border-color: #f87171;
+        }
+        
+        .lb-indicator:hover .lb-tooltip {
+            display: block;
+        }
+        
+        .lb-tooltip-header {
             font-size: 0.875rem;
-            font-weight: 500;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .lb-tooltip-section {
+            margin-bottom: 0.75rem;
+        }
+        
+        .lb-tooltip-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .lb-tooltip-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            margin-bottom: 0.25rem;
+        }
+        
+        .lb-tooltip-value {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .lb-tooltip-ip {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #fbbf24;
+            border-radius: 6px;
+            padding: 0.5rem;
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .lb-tooltip-ip.pending {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-color: #f87171;
+        }
+        
+        .lb-tooltip-ip-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 0.25rem;
+        }
+        
+        .lb-tooltip-ip.pending .lb-tooltip-ip-label {
+            color: #991b1b;
+        }
+        
+        .lb-tooltip-ip-value {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #78350f;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .lb-tooltip-ip.pending .lb-tooltip-ip-value {
+            color: #7f1d1d;
+        }
+        
+        .lb-tooltip-ports {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.375rem;
+        }
+        
+        .lb-tooltip-port {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .app-type-badge {
+            padding: 0.25rem 0.625rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge-deployment {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-statefulset {
+            background: #fce7f3;
+            color: #9f1239;
+        }
+        
+        .badge-system {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .app-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        /* Replica Scaling */
+        .replica-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-light);
+        }
+        
+        .replica-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .replica-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--brand-primary);
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .scale-btn {
+            width: 36px;
+            height: 36px;
+            border: 2px solid var(--brand-primary);
+            background: var(--bg-secondary);
+            color: var(--brand-primary);
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .scale-btn:hover:not(:disabled) {
+            background: var(--brand-primary);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .scale-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .scale-btn.loading {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        
+        .replica-controls.scaling {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .replica-controls .scaling-indicator {
+            display: none;
+            font-size: 0.75rem;
+            color: var(--brand-primary);
+            font-weight: 600;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .replica-controls.scaling .scaling-indicator {
+            display: flex;
+        }
+        
+        .scaling-indicator-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--border-light);
+            border-top-color: var(--brand-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        /* Pod List */
+        .pod-list {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .pod-item {
+            background: var(--bg-tertiary);
             border: 1px solid var(--border-light);
-            box-shadow: var(--shadow-md);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .pod-name {
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .pod-node {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
         }
         
         .status-dot {
             width: 8px;
             height: 8px;
-            background: var(--text-inverse);
             border-radius: 50%;
-            margin-right: 0.5rem;
-            animation: pulse 2s infinite;
+            background: var(--success);
         }
         
-        .content {
-            padding: 2rem;
+        .status-dot.pending {
+            background: var(--warning);
         }
         
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 1.5rem;
+        .status-dot.failed {
+            background: var(--error);
+        }
+        
+        /* Node Topology */
+        .topology-container {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
         }
         
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: var(--brand-accent);
-            border-radius: 2px;
-            margin-right: 1rem;
-        }
-        
-        .architecture-diagram {
+        .node-card {
             background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            overflow-x: auto;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            padding: 1.25rem;
+            transition: all 0.2s;
         }
         
-        .cluster-overview {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            min-width: 800px;
+        .node-card.control-plane {
+            border-color: var(--brand-primary);
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(79, 70, 229, 0.02) 100%);
         }
         
-        .cluster-header {
-            text-align: center;
-            padding: 1.5rem;
-            background: var(--gradient-brand);
-            color: var(--text-inverse);
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            box-shadow: var(--shadow-md);
-        }
-        
-        .cluster-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        
-        .cluster-info {
-            font-size: 0.875rem;
-            opacity: 0.9;
-        }
-        
-        .refresh-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        
-        .refresh-btn {
-            background: var(--brand-primary);
-            color: var(--text-inverse);
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .refresh-btn:hover {
-            background: var(--brand-secondary);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .refresh-btn:active {
-            transform: translateY(0);
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .refresh-btn:focus {
-            outline: none;
-            box-shadow: var(--shadow-md), 0 0 0 3px var(--focus-ring);
-        }
-        
-        .architecture-flow {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-        
-        .arch-layer {
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            position: relative;
-        }
-        
-        .service-layer {
-            background: linear-gradient(135deg, rgba(5, 150, 105, 0.08), rgba(5, 150, 105, 0.04));
-            border-color: rgba(5, 150, 105, 0.2);
-        }
-        
-        .deployment-layer {
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(14, 165, 233, 0.04));
-            border-color: rgba(14, 165, 233, 0.2);
-        }
-        
-        .control-layer {
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(79, 70, 229, 0.04));
-            border-color: rgba(79, 70, 229, 0.2);
-        }
-        
-        .worker-layer {
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(124, 58, 237, 0.04));
-            border-color: rgba(124, 58, 237, 0.2);
-        }
-        
-        .layer-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        
-        .layer-description {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            text-align: center;
-            margin-bottom: 1.5rem;
-            font-style: italic;
-        }
-        
-        .layer-components {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: center;
-        }
-        
-        .component {
-            background: var(--bg-card);
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid var(--border-light);
-            text-align: center;
-            min-width: 200px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow-sm);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .component::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--gradient-brand);
-        }
-        
-        .component:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--border-medium);
-        }
-        
-        .component.control-plane {
-            background: var(--gradient-brand) !important;
-            color: var(--text-inverse) !important;
-            padding: 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-light);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .component.control-plane:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-xl);
-        }
-        
-        .component.worker-node {
-            background: linear-gradient(135deg, var(--worker-node), var(--brand-secondary)) !important;
-            color: var(--text-inverse) !important;
-            padding: 1rem;
-            border-radius: 12px;
-            text-align: center;
-            position: relative;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-light);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .component.worker-node:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .component.control-plane *,
-        .component.worker-node *,
-        .component.deployment * {
-            color: var(--text-inverse) !important;
-        }
-        
-        .component.deployment {
-            background: var(--gradient-accent) !important;
-            color: var(--text-inverse) !important;
-        }
-        
-        .component-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .component-name {
-            font-weight: 600;
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .component-detail {
-            font-size: 0.875rem;
-            opacity: 0.8;
-            margin-bottom: 0.5rem;
-        }
-        
-        .component-explanation {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 0.75rem;
-            line-height: 1.5;
-            font-style: italic;
-            opacity: 0.8;
-        }
-        
-        .component-specs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            justify-content: center;
-            margin-top: 0.5rem;
-        }
-        
-        .component-specs span {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-        }
-        
-        .worker-pool-section {
-            margin-bottom: 2rem;
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.06), rgba(124, 58, 237, 0.03));
-            border: 1px solid rgba(124, 58, 237, 0.15);
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-        
-        .pool-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid rgba(124, 58, 237, 0.2);
-        }
-        
-        .pool-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--worker-node);
-        }
-        
-        .pool-stats {
-            display: flex;
-            gap: 1rem;
-        }
-        
-        .pool-stat {
-            background: rgba(124, 58, 237, 0.1);
-            border: 1px solid rgba(124, 58, 237, 0.2);
-            border-radius: 6px;
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-        
-        .worker-nodes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            align-items: start;
-        }
-        
-        .node-pool-badge {
-            background: rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 0.5rem;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.9);
-        }
-        
-        .layer-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 2rem;
-            gap: 2rem;
-        }
-        
-        .layer-title-section {
-            flex: 1;
-        }
-        
-        .pod-view-toggle {
-            display: flex;
-            gap: 0.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.25rem;
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .toggle-btn {
-            background: transparent;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: var(--text-muted);
-            white-space: nowrap;
-        }
-        
-        .toggle-btn:hover {
-            background: var(--hover-overlay);
-            color: var(--brand-primary);
-        }
-        
-        .toggle-btn.active {
-            background: var(--brand-primary);
-            color: var(--text-inverse);
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .toggle-btn:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px var(--focus-ring);
-        }
-        
-        .control-plane-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 2rem;
-            align-items: start;
-        }
-        
-        .control-plane-detailed {
-            background: var(--gradient-brand) !important;
-            color: white !important;
-            padding: 2rem;
-            border-radius: 16px;
-            box-shadow: var(--shadow-lg);
-            border: 2px solid rgba(59, 130, 246, 0.3);
-        }
-        
-        .control-plane-header {
-            text-align: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .control-plane-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        
-        .control-plane-ip {
-            font-size: 0.875rem;
-            opacity: 0.9;
-            margin-bottom: 0.75rem;
-        }
-        
-        .control-plane-badge {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            display: inline-block;
-        }
-        
-        .control-plane-specs {
-            margin-bottom: 1.5rem;
-        }
-        
-        .spec-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .spec-row:last-child {
-            margin-bottom: 0;
-        }
-        
-        .control-plane-components {
-            margin-bottom: 1.5rem;
-        }
-        
-        .components-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            text-align: center;
-        }
-        
-        .components-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.5rem;
-        }
-        
-        .component-badge {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 8px;
-            padding: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            text-align: center;
-            transition: all 0.2s ease;
-        }
-        
-        .component-badge:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-1px);
-        }
-        
-        .control-plane-pods {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 1rem;
-        }
-        
-        .control-plane-pod {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border: 1px solid rgba(255, 255, 255, 0.25) !important;
-        }
-        
-        .deployment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 2rem;
-            gap: 2rem;
-            padding: 1.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .selector-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            gap: 2rem;
-        }
-        
-        .app-view-toggle {
-            display: flex;
-            gap: 0.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.25rem;
-            box-shadow: var(--shadow-sm);
+        .node-card.worker {
+            border-color: var(--brand-secondary);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(124, 58, 237, 0.02) 100%);
         }
         
         .node-header {
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
         }
         
         .node-name {
             font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
         }
         
-        .node-ip {
-            font-size: 0.875rem;
-            opacity: 0.8;
+        .node-type {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .node-type.control-plane {
+            background: var(--brand-primary);
+            color: white;
+        }
+        
+        .node-type.worker {
+            background: var(--brand-secondary);
+            color: white;
         }
         
         .node-specs {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
             margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-light);
         }
         
         .spec-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.5rem;
-            border-radius: 6px;
             text-align: center;
         }
         
         .spec-label {
             font-size: 0.75rem;
-            opacity: 0.8;
+            color: var(--text-muted);
             margin-bottom: 0.25rem;
         }
         
         .spec-value {
             font-size: 0.875rem;
-            font-weight: 600;
-        }
-        
-        .pods-section {
-            margin-top: 1rem;
-        }
-        
-        .pods-header {
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            text-align: center;
-        }
-        
-        .pods-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            /* Removed max-height and overflow to show all pods */
-        }
-        
-        /* App Selector Styles */
-        .app-selector {
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.06), rgba(79, 70, 229, 0.03));
-            border-radius: 12px;
-            border: 1px solid rgba(79, 70, 229, 0.15);
-        }
-        
-        .selector-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        
-        .app-tabs {
-            display: inline-flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            justify-content: center;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.25rem;
-            box-shadow: var(--shadow-sm);
-            margin: 0 auto;
-        }
-        
-        .app-tab {
-            padding: 0.5rem 1rem;
-            background: transparent;
-            border: none;
-            border-radius: 6px;
+            font-weight: 700;
             color: var(--text-primary);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.875rem;
-            white-space: nowrap;
-        }
-        
-        .app-tab:hover {
-            background: var(--hover-overlay);
-            color: var(--brand-primary);
-        }
-        
-        .app-tab.active {
-            background: var(--brand-primary);
-            color: var(--text-inverse);
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .app-tab:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px var(--focus-ring);
-        }
-        
-        #dynamic-app-tabs {
-            display: contents;
-        }
-        
-        /* App Content Styles */
-        .app-content {
-            display: none;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        
-        .app-content.active {
-            display: block;
-        }
-        
-        .external-layer {
-            background: linear-gradient(135deg, rgba(217, 119, 6, 0.08), rgba(217, 119, 6, 0.04));
-            border-color: rgba(217, 119, 6, 0.2);
-        }
-        
-        .deployment-detail-view {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-        
-        .deployment-header {
-            text-align: center;
-            padding: 1.5rem;
-            background: var(--gradient-brand);
-            color: var(--text-inverse);
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-md);
-        }
-        
-        .deployment-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-        
-        .type-badge {
-            font-size: 0.7rem;
-            font-weight: 600;
-            padding: 0.25rem 0.6rem;
-            border-radius: 12px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            display: inline-block;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .type-badge.deployment {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .type-badge.statefulset {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.4);
-        }
-        
-        .deployment-info {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-        
-        .pod-distribution {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-        
-        .node-pod-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: var(--shadow-md);
-            transition: all 0.3s ease;
-        }
-        
-        .node-pod-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .node-card-header {
-            text-align: center;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--border-light);
-        }
-        
-        .node-card-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.25rem;
-        }
-        
-        .node-card-ip {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            font-family: 'Monaco', 'Menlo', monospace;
-        }
-        
-        .pod-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 0.75rem;
-        }
-        
-        .pod-card {
-            background: rgba(79, 70, 229, 0.08);
-            border: 1px solid rgba(79, 70, 229, 0.2);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-            transition: all 0.2s ease;
-        }
-        
-        .pod-card:hover {
-            transform: scale(1.02);
-            background: rgba(79, 70, 229, 0.12);
-        }
-        
-        .pod-card.running {
-            border-color: var(--success);
-            background: rgba(5, 150, 105, 0.1);
-        }
-        
-        .pod-card.pending {
-            border-color: var(--warning);
-            background: rgba(217, 119, 6, 0.1);
-        }
-        
-        .pod-card.failed {
-            border-color: var(--error);
-            background: rgba(220, 38, 38, 0.1);
-        }
-        
-        .pod-name {
-            font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
-            word-break: break-word;
-        }
-        
-        .pod-status {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-weight: 500;
-            text-transform: uppercase;
-        }
-        
-        .pod-status.running {
-            background: var(--success-color);
-            color: white;
-        }
-        
-        .pod-status.pending {
-            background: var(--warning-color);
-            color: white;
-        }
-        
-        .pod-status.failed {
-            background: var(--error-color);
-            color: white;
-        }
-        
-        .pod-item {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.5rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            text-align: center;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .pod-item:hover {
-            transform: scale(1.02);
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-        }
-        
-        .loading::after {
-            content: '';
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border-color);
-            border-top: 2px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 0.5rem;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
         
         @media (max-width: 768px) {
-            .cluster-overview {
-                min-width: auto;
-            }
-            
-            .worker-nodes-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .pool-header {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-            
-            .pool-stats {
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-            
-            .layer-header {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: center;
-            }
-            
-            .pod-view-toggle {
-                align-self: center;
-            }
-            
-            .control-plane-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .spec-row {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-            
-            .components-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .deployment-header {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: center;
-            }
-            
-            .selector-header {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: center;
-            }
-            
-            .app-view-toggle {
-                align-self: center;
-            }
-            
-            .container {
-                margin: 0;
-                border-radius: 0;
-            }
-            
-            body {
-                padding: 0;
+            .node-specs {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
         
-        /* Replica Management Styles */
-        .replica-controls {
+        .node-pods {
             display: flex;
-            align-items: center;
+            flex-wrap: wrap;
             gap: 0.5rem;
-            margin-top: 0.75rem;
-            padding: 0.75rem;
-            background: rgba(99, 102, 241, 0.05);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            border-radius: 8px;
         }
         
-        .replica-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            min-width: 60px;
-        }
-        
-        .replica-input {
-            width: 60px;
-            padding: 0.25rem 0.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 0.875rem;
-            text-align: center;
-        }
-        
-        .replica-btn {
-            padding: 0.5rem 1rem;
-            border: none;
+        .pod-badge {
+            padding: 0.375rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
             border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .replica-btn.scale {
-            background: var(--brand-primary);
-            color: var(--text-inverse);
-        }
-        
-        .replica-btn.scale:hover {
-            background: var(--brand-secondary);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .replica-btn.scale:disabled {
-            background: linear-gradient(135deg, var(--text-muted), var(--text-muted));
-            cursor: not-allowed;
-            transform: none;
-            opacity: 0.6;
-        }
-        
-        .replica-btn.quick {
-            background: var(--brand-primary);
-            color: var(--text-inverse);
-            padding: 0.4rem 0.8rem;
-            min-width: 36px;
-            border-radius: 6px;
-        }
-        
-        .replica-btn.quick:hover {
-            background: var(--brand-secondary);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .replica-status {
             font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-left: auto;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
         }
         
-        .replica-status.success {
-            color: var(--success-color);
+        /* Load Balancer Card */
+        .lb-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            padding: 1.25rem;
+            transition: all 0.2s;
         }
         
-        .replica-status.error {
-            color: var(--error-color);
+        .lb-card:hover {
+            border-color: var(--warning);
+            box-shadow: var(--shadow-md);
         }
         
-        .replica-status.loading {
-            color: var(--warning-color);
-        }
-        
-        .replica-status.warning {
-            color: var(--warning-color);
-            font-weight: 600;
-        }
-        
-        .quick-actions {
-            display: flex;
-            gap: 0.25rem;
-            margin-left: 0.5rem;
-        }
-        
-        .deployment-header {
+        .lb-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
         }
         
-        .deployment-title {
-            font-size: 1.25rem;
-            font-weight: 600;
+        .lb-name {
+            font-size: 1rem;
+            font-weight: 700;
             color: var(--text-primary);
-        }
-        
-        .deployment-actions {
             display: flex;
+            align-items: center;
             gap: 0.5rem;
         }
         
-        .action-btn {
-            padding: 0.5rem 1rem;
-            border: none;
+        .lb-type-badge {
+            padding: 0.25rem 0.625rem;
             border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-loadbalancer {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-clusterip {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-nodeport {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        
+        .lb-stats {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .lb-stat-item {
+            display: flex;
+            justify-content: space-between;
             font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .lb-stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8125rem;
+        }
+        
+        .lb-ip {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .lb-ip-label {
+            font-size: 0.75rem;
+            color: #92400e;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .lb-ip-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #78350f;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .lb-ports {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .port-badge {
+            padding: 0.375rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .port-badge .port-protocol {
+            color: var(--text-muted);
             font-weight: 500;
+        }
+        
+        /* Confirmation Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .modal-body {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+            border: none;
         }
         
-        .action-btn.refresh {
-            background: var(--bg-elevated);
-            color: var(--brand-primary);
-            border: 2px solid var(--brand-primary);
-        }
-        
-        .action-btn.refresh:hover {
+        .btn-primary {
             background: var(--brand-primary);
-            color: var(--text-inverse);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #4338ca;
             transform: translateY(-1px);
             box-shadow: var(--shadow-md);
         }
         
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-medium);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--neutral-200);
+        }
+        
+        /* Notification */
         .notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
+            top: 2rem;
+            right: -500px;
+            background: var(--success);
             color: white;
+            padding: 1.25rem 1.75rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            transition: right 0.3s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 320px;
+            max-width: 500px;
+            font-size: 0.9375rem;
             font-weight: 500;
-            z-index: 1000;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
         }
         
         .notification.show {
-            transform: translateX(0);
-        }
-        
-        .notification.success {
-            background: var(--success-color);
+            right: 2rem;
         }
         
         .notification.error {
-            background: var(--error-color);
+            background: var(--error);
         }
         
         .notification.info {
-            background: var(--info-color);
+            background: var(--info);
+        }
+        
+        .notification.loading {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 10px 40px rgba(79, 70, 229, 0.4);
+            }
+            50% {
+                box-shadow: 0 10px 50px rgba(79, 70, 229, 0.6);
+            }
+        }
+        
+        .notification-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+        
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-light);
+            border-top-color: var(--brand-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        /* Scrollbar Styling */
+        .panel-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .panel-content::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+        
+        .panel-content::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 4px;
+        }
+        
+        .panel-content::-webkit-scrollbar-thumb:hover {
+            background: var(--border-strong);
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header (Keep Same) -->
         <div class="header">
             <div class="header-container">
-                <!-- Top-right action menu -->
                 <div class="nav-actions-menu">
                     <button class="nav-icon-btn" onclick="refreshData()" title="Refresh Data">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1374,1302 +1213,956 @@
                 </div>
                 
                 <div class="header-content">
-                <svg class="nutanix-logo" viewBox="0 0 1064.95 134.32" xmlns="http://www.w3.org/2000/svg">
-                    <style type="text/css">.st0{fill:#131313;}</style>
-                    <path class="st0" d="M476.14,28.26h-53.43c-0.05,0-0.08,0.04-0.08,0.08v103.97c0,1.1-0.9,2-2,2h-25.81c-1.1,0-2-0.9-2-2V28.34c0-0.05-0.04-0.08-0.08-0.08h-53.28c-1.1,0-2-0.9-2-2V2.98c0-1.1,0.9-2,2-2h136.68c1.1,0,2,0.9,2,2v23.28C478.14,27.36,477.25,28.26,476.14,28.26z M855.74,0.98h-25.81c-1.1,0-2,0.9-2,2v129.34c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2V2.98C857.74,1.87,856.84,0.98,855.74,0.98z M1064.31,131.08c0.58,0.5,0.79,1.32,0.52,2.04s-0.96,1.2-1.73,1.2h-39.75c-0.44,0-0.87-0.16-1.21-0.45l-43.67-37.79c-0.4-0.35-0.64-0.86-0.64-1.39c0-0.54,0.23-1.04,0.64-1.39l19.87-17.2c0.69-0.6,1.72-0.6,2.41,0L1064.31,131.08z M998.36,59.2c0.35,0.3,0.78,0.45,1.21,0.45c0.43,0,0.86-0.15,1.21-0.45l63.54-54.99c0.58-0.5,0.79-1.32,0.52-2.04c-0.27-0.72-0.96-1.2-1.73-1.2h-39.75c-0.44,0-0.87,0.16-1.21,0.45l-43.67,37.79c-0.4,0.35-0.64,0.86-0.64,1.39c0,0.54,0.23,1.04,0.64,1.39L998.36,59.2z M990.04,67.65c0-0.54-0.23-1.04-0.64-1.39L914.49,1.43c-0.33-0.29-0.76-0.45-1.21-0.45h-39.75c-0.77,0-1.46,0.48-1.73,1.2s-0.06,1.53,0.52,2.04l73.23,63.37c0.04,0.03,0.04,0.09,0,0.13l-73.23,63.37c-0.58,0.5-0.79,1.32-0.52,2.04s0.96,1.2,1.73,1.2h39.75c0.44,0,0.87-0.16,1.21-0.45l74.91-64.83C989.81,68.69,990.04,68.18,990.04,67.65z M29.81,44.32c0-0.07,0.08-0.11,0.13-0.07c3.92,3.51,93.13,83.39,97.43,86.77c3.8,2.98,8.19,4.83,13.91,3.99c7.4-0.9,15.54-7.22,15.54-17.86V2.98c0-1.1-0.9-2-2-2h-25.81c-1.1,0-2,0.9-2,2v87.91c0,0.07-0.08,0.11-0.13,0.07c-3.92-3.51-93.13-83.39-97.43-86.77c-3.8-2.98-8.19-4.83-13.91-3.99C8.14,1.1,0,7.43,0,18.06v114.25c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2L29.81,44.32z M684.96,44.32c0-0.07,0.08-0.11,0.13-0.07c3.92,3.51,93.13,83.39,97.43,86.77c3.8,2.98,8.19,4.83,13.91,3.99c7.4-0.9,15.54-7.22,15.54-17.86V2.98c0-1.1-0.9-2-2-2h-25.81c-1.1,0-2,0.9-2,2v87.91c0,0.07-0.08,0.11-0.13,0.07c-3.92-3.51-93.13-83.39-97.43-86.77c-3.8-2.98-8.19-4.83-13.91-3.99c-7.4,0.9-15.54,7.23-15.54,17.86v114.25c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2V44.32z M255.72,136.96c16.08-0.04,34-0.95,45-7.44c14.64-8.64,21.76-20.64,21.76-36.67l0.01-89.87c0-1.1-0.9-2-2-2h-26.06c-1.1,0-2,0.9-2,2l-0.01,88.12c-0.25,17.54-21.98,17.72-37.66,17.72h-14.25c-15.68,0-37.4-0.17-37.66-17.72l-0.01-88.12c0-1.1-0.9-2-2-2h-26.06c-1.1,0-2,0.9-2,2l0.01,89.87c0,16.03,7.12,28.03,21.76,36.67c11,6.49,28.92,7.41,45,7.44H255.72z M642.86,131.31c0.41,0.58,0.46,1.34,0.14,1.98c-0.32,0.63-0.97,1.03-1.68,1.03h-31.87c-0.64,0-1.24-0.31-1.61-0.84l-18.59-26.58c-0.02-0.02-0.04-0.04-0.07-0.04h-95.56c-0.03,0-0.05,0.01-0.07,0.04l-18.66,26.61c-0.35,0.51-0.93,0.81-1.54,0.81h-31.87c-0.71,0-1.36-0.4-1.68-1.03s-0.27-1.4,0.14-1.98c0,0,81.05-115.69,86.05-122.6S536.02,0,541.44,0c5.97,0,10.58,2.23,15.02,8.18L642.86,131.31z M569.84,79.45L541.48,39.3c-0.03-0.05-0.1-0.05-0.14,0l-28.37,40.15c-0.04,0.06,0,0.13,0.07,0.13h56.73C569.84,79.58,569.88,79.5,569.84,79.45z"/>
-                </svg>
-                <h1>NKP Cluster Visualizer</h1>
-                <p class="subtitle">Real-time Kubernetes Platform Architecture & Workload Distribution</p>
+                    <svg class="nutanix-logo" viewBox="0 0 1064.95 134.32" xmlns="http://www.w3.org/2000/svg">
+                        <style type="text/css">.st0{fill:#131313;}</style>
+                        <path class="st0" d="M476.14,28.26h-53.43c-0.05,0-0.08,0.04-0.08,0.08v103.97c0,1.1-0.9,2-2,2h-25.81c-1.1,0-2-0.9-2-2V28.34c0-0.05-0.04-0.08-0.08-0.08h-53.28c-1.1,0-2-0.9-2-2V2.98c0-1.1,0.9-2,2-2h136.68c1.1,0,2,0.9,2,2v23.28C478.14,27.36,477.25,28.26,476.14,28.26z M855.74,0.98h-25.81c-1.1,0-2,0.9-2,2v129.34c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2V2.98C857.74,1.87,856.84,0.98,855.74,0.98z M1064.31,131.08c0.58,0.5,0.79,1.32,0.52,2.04s-0.96,1.2-1.73,1.2h-39.75c-0.44,0-0.87-0.16-1.21-0.45l-43.67-37.79c-0.4-0.35-0.64-0.86-0.64-1.39c0-0.54,0.23-1.04,0.64-1.39l19.87-17.2c0.69-0.6,1.72-0.6,2.41,0L1064.31,131.08z M998.36,59.2c0.35,0.3,0.78,0.45,1.21,0.45c0.43,0,0.86-0.15,1.21-0.45l63.54-54.99c0.58-0.5,0.79-1.32,0.52-2.04c-0.27-0.72-0.96-1.2-1.73-1.2h-39.75c-0.44,0-0.87,0.16-1.21,0.45l-43.67,37.79c-0.4,0.35-0.64,0.86-0.64,1.39c0,0.54,0.23,1.04,0.64,1.39L998.36,59.2z M990.04,67.65c0-0.54-0.23-1.04-0.64-1.39L914.49,1.43c-0.33-0.29-0.76-0.45-1.21-0.45h-39.75c-0.77,0-1.46,0.48-1.73,1.2s-0.06,1.53,0.52,2.04l73.23,63.37c0.04,0.03,0.04,0.09,0,0.13l-73.23,63.37c-0.58,0.5-0.79,1.32-0.52,2.04s0.96,1.2,1.73,1.2h39.75c0.44,0,0.87-0.16,1.21-0.45l74.91-64.83C989.81,68.69,990.04,68.18,990.04,67.65z M29.81,44.32c0-0.07,0.08-0.11,0.13-0.07c3.92,3.51,93.13,83.39,97.43,86.77c3.8,2.98,8.19,4.83,13.91,3.99c7.4-0.9,15.54-7.22,15.54-17.86V2.98c0-1.1-0.9-2-2-2h-25.81c-1.1,0-2,0.9-2,2v87.91c0,0.07-0.08,0.11-0.13,0.07c-3.92-3.51-93.13-83.39-97.43-86.77c-3.8-2.98-8.19-4.83-13.91-3.99C8.14,1.1,0,7.43,0,18.06v114.25c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2L29.81,44.32z M684.96,44.32c0-0.07,0.08-0.11,0.13-0.07c3.92,3.51,93.13,83.39,97.43,86.77c3.8,2.98,8.19,4.83,13.91,3.99c7.4-0.9,15.54-7.22,15.54-17.86V2.98c0-1.1-0.9-2-2-2h-25.81c-1.1,0-2,0.9-2,2v87.91c0,0.07-0.08,0.11-0.13,0.07c-3.92-3.51-93.13-83.39-97.43-86.77c-3.8-2.98-8.19-4.83-13.91-3.99c-7.4,0.9-15.54,7.23-15.54,17.86v114.25c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2V44.32z M255.72,136.96c16.08-0.04,34-0.95,45-7.44c14.64-8.64,21.76-20.64,21.76-36.67l0.01-89.87c0-1.1-0.9-2-2-2h-26.06c-1.1,0-2,0.9-2,2l-0.01,88.12c-0.25,17.54-21.98,17.72-37.66,17.72h-14.25c-15.68,0-37.4-0.17-37.66-17.72l-0.01-88.12c0-1.1-0.9-2-2-2h-26.06c-1.1,0-2,0.9-2,2l0.01,89.87c0,16.03,7.12,28.03,21.76,36.67c11,6.49,28.92,7.41,45,7.44H255.72z M642.86,131.31c0.41,0.58,0.46,1.34,0.14,1.98c-0.32,0.63-0.97,1.03-1.68,1.03h-31.87c-0.64,0-1.24-0.31-1.61-0.84l-18.59-26.58c-0.02-0.02-0.04-0.04-0.07-0.04h-95.56c-0.03,0-0.05,0.01-0.07,0.04l-18.66,26.61c-0.35,0.51-0.93,0.81-1.54,0.81h-31.87c-0.71,0-1.36-0.4-1.68-1.03s-0.27-1.4,0.14-1.98c0,0,81.05-115.69,86.05-122.6S536.02,0,541.44,0c5.97,0,10.58,2.23,15.02,8.18L642.86,131.31z M569.84,79.45L541.48,39.3c-0.03-0.05-0.1-0.05-0.14,0l-28.37,40.15c-0.04,0.06,0,0.13,0.07,0.13h56.73C569.84,79.58,569.88,79.5,569.84,79.45z"/>
+                    </svg>
+                    <h1>NKP Cluster Visualizer</h1>
+                    <p class="subtitle">Real-time Kubernetes Platform Architecture & Workload Distribution</p>
                 </div>
             </div>
         </div>
         
-        <div class="content">
-            <!-- Cluster Status Badge -->
-            <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
-                <div class="status-badge">
-                    <div class="status-dot"></div>
-                    <span id="cluster-status">Cluster Status: Loading...</span>
+        <!-- New Dashboard -->
+        <div class="dashboard">
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <span class="filter-label">Workload Type:</span>
+                    <button class="filter-btn active" data-filter="all" onclick="setFilter('type', 'all')">All</button>
+                    <button class="filter-btn" data-filter="deployment" onclick="setFilter('type', 'deployment')">Deployments</button>
+                    <button class="filter-btn" data-filter="statefulset" onclick="setFilter('type', 'statefulset')">StatefulSets</button>
+                    <button class="filter-btn" data-filter="system" onclick="setFilter('type', 'system')">System Pods</button>
                 </div>
-            </div>
-            <!-- Application Selector -->
-            <div class="app-selector">
-                <div class="selector-header">
-                    <div class="selector-title">📱 Application View</div>
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <div class="app-view-toggle">
-                            <button id="app-deployments-btn" class="toggle-btn active" onclick="toggleAppView('app')">
-                                📱 Application Deployments
-                            </button>
-                            <button id="system-deployments-btn" class="toggle-btn" onclick="toggleAppView('system')">
-                                ⚙️ System Deployments
-                            </button>
-                        </div>
-                        <div class="app-view-toggle">
-                            <button id="all-resources-btn" class="toggle-btn active" onclick="toggleResourceType('all')">
-                                📦 All Resources
-                            </button>
-                            <button id="deployments-only-btn" class="toggle-btn" onclick="toggleResourceType('deployment')">
-                                🚀 Deployments Only
-                            </button>
-                            <button id="statefulsets-only-btn" class="toggle-btn" onclick="toggleResourceType('statefulset')">
-                                ⚙️ StatefulSets Only
-                            </button>
-                        </div>
+                <div class="filter-group">
+                    <span class="filter-label">Pod Type:</span>
+                    <button class="filter-btn active" data-filter-ns="all" onclick="setFilter('namespace', 'all')">All</button>
+                    <button class="filter-btn" data-filter-ns="app" onclick="setFilter('namespace', 'app')">Application</button>
+                    <button class="filter-btn" data-filter-ns="system" onclick="setFilter('namespace', 'system')">System</button>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Search:</span>
+                    <div style="position: relative;">
+                        <input type="text" class="filter-input" id="search-namespace" placeholder="Filter by namespace..." oninput="handleAutocomplete('namespace', this.value)" onfocus="handleAutocompleteFocus('namespace')" onblur="hideAutocomplete('namespace')" autocomplete="off">
+                        <div class="autocomplete-dropdown" id="autocomplete-namespace"></div>
                     </div>
-                </div>
-                <div class="app-tabs">
-                    <button class="app-tab active" data-app="overview">🏗️ Infrastructure Overview</button>
-                    <div id="dynamic-app-tabs">
-                        <!-- Dynamic deployment tabs will be added here -->
+                    <div style="position: relative;">
+                        <input type="text" class="filter-input" id="search-app" placeholder="Filter by application..." oninput="handleAutocomplete('app', this.value)" onfocus="handleAutocompleteFocus('app')" onblur="hideAutocomplete('app')" autocomplete="off">
+                        <div class="autocomplete-dropdown" id="autocomplete-app"></div>
                     </div>
                 </div>
             </div>
-
-            <!-- Overview Tab Content -->
-            <div class="app-content active" id="overview-content">
-                <div class="section-title">🏗️ Cluster Architecture</div>
+            
+            <!-- Metrics Overview -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Total Nodes</div>
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white;">N</div>
+                    </div>
+                    <div class="metric-value" id="metric-nodes">0</div>
+                    <div class="metric-subtitle" id="metric-nodes-detail">Loading...</div>
+                </div>
                 
-                <div class="architecture-diagram">
-                    <div class="cluster-overview">
-                        <div class="cluster-header">
-                            <div class="cluster-title" id="cluster-title">🎯 NKP Cluster: Loading...</div>
-                            <div class="cluster-info" id="cluster-info">Kubernetes Loading... | Control Plane: Loading...</div>
-                        </div>
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Deployments</div>
+                        <div class="metric-icon" style="background: #dbeafe; color: #1e40af;">D</div>
                     </div>
-                    
-                    <div id="architecture-content">
-                        <div class="loading">Loading cluster architecture...</div>
+                    <div class="metric-value" id="metric-deployments">0</div>
+                    <div class="metric-subtitle" id="metric-deployments-detail">Loading...</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Total Pods</div>
+                        <div class="metric-icon" style="background: #d1fae5; color: #065f46;">P</div>
                     </div>
+                    <div class="metric-value" id="metric-pods">0</div>
+                    <div class="metric-subtitle" id="metric-pods-detail">Loading...</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Load Balancers</div>
+                        <div class="metric-icon" style="background: #fef3c7; color: #92400e;">LB</div>
+                    </div>
+                    <div class="metric-value" id="metric-loadbalancers">0</div>
+                    <div class="metric-subtitle" id="metric-loadbalancers-detail">Loading...</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Cluster Health</div>
+                        <div class="metric-icon" style="background: #d1fae5; color: #065f46;">✓</div>
+                    </div>
+                    <div class="metric-value" id="metric-health">—</div>
+                    <div class="metric-subtitle" id="metric-health-detail">Loading...</div>
                 </div>
             </div>
-
-            <!-- Dynamic App Content will be added here -->
-            <div id="dynamic-app-content">
-                <!-- Dynamic deployment content will be added here -->
+            
+            <!-- Main Content Grid - 50/50 Split -->
+            <div class="content-grid">
+                <!-- Applications Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Applications & Workloads</div>
+                    </div>
+                    <div class="panel-content" id="applications-panel">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <div>Loading applications...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Node Topology Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Node Topology</div>
+                    </div>
+                    <div class="panel-content" id="topology-panel">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <div>Loading nodes...</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     
+    <!-- Confirmation Modal -->
+    <div class="modal" id="scale-modal">
+        <div class="modal-content">
+            <div class="modal-title">Confirm Replica Scaling</div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmScale()">Confirm</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+    
     <script>
         let clusterData = null;
-        let currentPodView = 'app'; // 'app' or 'system'
-        let currentAppView = 'app'; // 'app' or 'system' for Application View
-        let currentResourceType = 'all'; // 'all', 'deployment', or 'statefulset'
+        let currentFilters = {
+            type: 'all',
+            namespace: 'all',
+            searchNamespace: '',
+            searchApp: ''
+        };
+        let scaleAction = null;
         
-        async function fetchClusterData() {
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadClusterData();
+            // Auto-refresh every 30 seconds
+            setInterval(loadClusterData, 30000);
+        });
+        
+        // Load cluster data
+        async function loadClusterData() {
             try {
                 const response = await fetch('/api/cluster');
                 const data = await response.json();
-                return data;
+                
+                // Check for authentication error
+                if (data.error) {
+                    console.error('API Error:', data.error);
+                    if (data.error === 'Authentication required') {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    showNotification(`Failed to load cluster data: ${data.error}`, 'error');
+                    return;
+                }
+                
+                clusterData = data;
+                renderDashboard();
             } catch (error) {
-                // Error fetching cluster data - fail silently in production
-                return null;
+                console.error('Error loading cluster data:', error);
+                showNotification('Failed to load cluster data', 'error');
             }
         }
         
-        function updateClusterInfo(data) {
-            if (!data) return;
-            
-            document.getElementById('cluster-title').textContent = `🎯 NKP Cluster: ${data.cluster_name || 'Unknown'}`;
-            
-            const controlPlaneIP = data.master_nodes && data.master_nodes.length > 0 
-                ? data.master_nodes[0].internal_ip || 'Unknown' 
-                : 'Unknown';
-            
-            document.getElementById('cluster-info').textContent = 
-                `Kubernetes ${data.kubernetes_version || 'Unknown'} | Control Plane: ${controlPlaneIP}:443`;
-            
-            document.getElementById('cluster-status').textContent = 
-                `Cluster Status: ${data.ready_nodes}/${data.total_nodes} Nodes Ready | ${data.running_pods}/${data.total_pods} Pods Running`;
+        // Refresh data
+        function refreshData() {
+            showNotification('Refreshing data...', 'info');
+            loadClusterData();
         }
         
-        function renderArchitecture(data) {
-            if (!data) return;
+        // Render entire dashboard
+        function renderDashboard() {
+            if (!clusterData) return;
             
-            const archContent = document.getElementById('architecture-content');
+            updateAutocompleteLists();
+            renderMetrics();
+            renderApplications();
+            renderTopology();
+        }
+        
+        // Update autocomplete lists
+        function updateAutocompleteLists() {
+            if (!clusterData || !clusterData.deployments) return;
             
-            let html = '<div class="architecture-flow">';
+            // Get unique namespaces and app names
+            const namespaces = new Set();
+            const appNames = new Set();
             
-            // External Traffic Layer (Load Balancers)
-            html += `
-                <div class="arch-layer external-layer">
-                    <div class="layer-title">🌍 External Traffic Entry</div>
-                    <div class="layer-description">External users access applications through LoadBalancer services</div>
-                    <div class="layer-components">
-                        <div class="component external-lb">
-                            <div class="component-icon">⚖️</div>
-                            <div class="component-name">MetalLB Controller</div>
-                            <div class="component-detail">Load Balancer Provider</div>
-                            <div class="component-explanation">Assigns external IPs to LoadBalancer services</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Service Load Balancers Layer
-            html += `
-                <div class="arch-layer service-layer">
-                    <div class="layer-title">🌐 Service Load Balancers</div>
-                    <div class="layer-description">External access points for applications</div>
-                    <div class="layer-components">
-            `;
+            clusterData.deployments.forEach(workload => {
+                namespaces.add(workload.namespace);
+                appNames.add(workload.name);
+            });
             
-            if (data.services && data.services.length > 0) {
-                const loadBalancerServices = data.services.filter(svc => svc.type === 'LoadBalancer');
-                loadBalancerServices.slice(0, 8).forEach(service => {
-                    const port = service.ports && service.ports.length > 0 ? service.ports[0].port : 'Unknown';
-                    const lbIP = service.load_balancer_ip || 'Pending';
-                    html += `
-                        <div class="component service">
-                            <div class="component-icon">🌐</div>
-                            <div class="component-name">${service.name}</div>
-                            <div class="component-detail">Type: ${service.type} | Port: ${port}</div>
-                            <div class="component-detail">LB IP: ${lbIP}</div>
-                            <div class="component-explanation">Routes external traffic to pods using label selector</div>
-                        </div>
-                    `;
+            // Store for autocomplete
+            window.autocompleteData = {
+                namespaces: Array.from(namespaces).sort(),
+                apps: Array.from(appNames).sort()
+            };
+        }
+        
+        // Handle autocomplete input
+        function handleAutocomplete(type, value) {
+            setSearchFilter(type, value);
+            
+            if (!value || !window.autocompleteData) {
+                hideAutocomplete(type);
+                return;
+            }
+            
+            const data = type === 'namespace' ? window.autocompleteData.namespaces : window.autocompleteData.apps;
+            const matches = data.filter(item => item.toLowerCase().includes(value.toLowerCase()));
+            
+            if (matches.length === 0) {
+                hideAutocomplete(type);
+                return;
+            }
+            
+            showAutocomplete(type, matches, value);
+        }
+        
+        // Handle autocomplete focus
+        function handleAutocompleteFocus(type) {
+            const input = type === 'namespace' ? document.getElementById('search-namespace') : document.getElementById('search-app');
+            if (input.value) {
+                handleAutocomplete(type, input.value);
+            }
+        }
+        
+        // Show autocomplete dropdown
+        function showAutocomplete(type, matches, currentValue) {
+            const dropdown = document.getElementById(`autocomplete-${type}`);
+            dropdown.innerHTML = '';
+            
+            // Limit to 8 suggestions
+            matches.slice(0, 8).forEach(match => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.textContent = match;
+                item.onmousedown = (e) => {
+                    e.preventDefault(); // Prevent blur event
+                    selectAutocomplete(type, match);
+                };
+                dropdown.appendChild(item);
+            });
+            
+            dropdown.classList.add('show');
+        }
+        
+        // Hide autocomplete dropdown
+        function hideAutocomplete(type) {
+            setTimeout(() => {
+                const dropdown = document.getElementById(`autocomplete-${type}`);
+                dropdown.classList.remove('show');
+            }, 200);
+        }
+        
+        // Select autocomplete item
+        function selectAutocomplete(type, value) {
+            const input = type === 'namespace' ? document.getElementById('search-namespace') : document.getElementById('search-app');
+            input.value = value;
+            setSearchFilter(type, value);
+            hideAutocomplete(type);
+        }
+        
+        // Render metrics
+        function renderMetrics() {
+            const totalNodes = (clusterData.master_nodes?.length || 0) + 
+                              Object.values(clusterData.worker_pools || {}).flat().length;
+            const controlPlaneNodes = clusterData.master_nodes?.length || 0;
+            const workerNodes = Object.values(clusterData.worker_pools || {}).flat().length;
+            
+            document.getElementById('metric-nodes').textContent = totalNodes;
+            document.getElementById('metric-nodes-detail').textContent = 
+                `${controlPlaneNodes} Control Plane, ${workerNodes} Workers`;
+            
+            // Count deployments and statefulsets from the deployments array (which contains both)
+            const deployments = (clusterData.deployments || []).filter(d => d.type === 'Deployment').length;
+            const statefulsets = (clusterData.deployments || []).filter(d => d.type === 'StatefulSet').length;
+            
+            document.getElementById('metric-deployments').textContent = deployments + statefulsets;
+            document.getElementById('metric-deployments-detail').textContent = 
+                `${deployments} Deployments, ${statefulsets} StatefulSets`;
+            
+            let totalPods = 0;
+            let runningPods = 0;
+            
+            // Count pods from all nodes
+            if (clusterData.master_nodes) {
+                clusterData.master_nodes.forEach(node => {
+                    const pods = node.pods || [];
+                    totalPods += pods.length;
+                    runningPods += pods.filter(p => p.status === 'Running').length;
                 });
-            } else {
-                html += `
-                    <div class="component service">
-                        <div class="component-icon">🌐</div>
-                        <div class="component-name">No LoadBalancer Services</div>
-                        <div class="component-detail">No external services found</div>
-                    </div>
-                `;
             }
             
-            html += '</div></div>';
+            if (clusterData.worker_pools) {
+                Object.values(clusterData.worker_pools).forEach(nodes => {
+                    nodes.forEach(node => {
+                        const pods = node.pods || [];
+                        totalPods += pods.length;
+                        runningPods += pods.filter(p => p.status === 'Running').length;
+                    });
+                });
+            }
             
-            // Application Workloads Layer
-            html += `
-                <div class="arch-layer deployment-layer">
-                    <div class="layer-title">🚀 Application Workloads</div>
-                    <div class="layer-description">Running applications and their deployment status</div>
-                    <div class="layer-components">
-            `;
+            document.getElementById('metric-pods').textContent = totalPods;
+            document.getElementById('metric-pods-detail').textContent = 
+                `${runningPods} Running, ${totalPods - runningPods} Other`;
             
-            if (data.deployments && data.deployments.length > 0) {
-                // Filter to show only application deployments (non-system)
-                const applicationDeployments = data.deployments.filter(deployment => {
-                    // Define system namespaces
-                    const systemNamespaces = [
-                        'kube-system', 'kube-public', 'kube-node-lease', 'kommander',
-                        'kommander-flux', 'gatekeeper-system', 'cert-manager', 'metallb-system',
-                        'ingress-nginx', 'monitoring', 'logging', 'velero', 'istio-system',
-                        'linkerd', 'calico-system', 'tigera-operator', 'ntnx-system',
-                        'nutanix-platform'
-                    ];
-                    
-                    // Check if deployment is in a system namespace
-                    if (systemNamespaces.includes(deployment.namespace)) {
+            const readyNodes = totalNodes; // Simplified - could check actual status
+            const healthPercentage = totalNodes > 0 ? Math.round((readyNodes / totalNodes) * 100) : 0;
+            
+            document.getElementById('metric-health').textContent = `${healthPercentage}%`;
+            document.getElementById('metric-health-detail').textContent = 
+                `${readyNodes} of ${totalNodes} nodes ready`;
+            
+            // Count load balancers (only external LoadBalancer type)
+            const services = clusterData.services || [];
+            const loadBalancers = services.filter(s => s.type === 'LoadBalancer').length;
+            const loadBalancersWithIP = services.filter(s => s.type === 'LoadBalancer' && s.load_balancer_ip).length;
+            const loadBalancersPending = loadBalancers - loadBalancersWithIP;
+            
+            document.getElementById('metric-loadbalancers').textContent = loadBalancers;
+            document.getElementById('metric-loadbalancers-detail').textContent = 
+                loadBalancersPending > 0 ? `${loadBalancersWithIP} Active, ${loadBalancersPending} Pending` : `${loadBalancersWithIP} Active`;
+        }
+        
+        // Helper function to find load balancers for an application
+        function findLoadBalancersForApp(appName, appNamespace, appSelector) {
+            const services = clusterData.services || [];
+            const loadBalancers = [];
+            
+            services.forEach(svc => {
+                // Only consider LoadBalancer type services in the same namespace
+                if (svc.type !== 'LoadBalancer' || svc.namespace !== appNamespace) {
+                    return;
+                }
+                
+                // Check if service selector matches application selector
+                const svcSelector = svc.selector || {};
+                const svcSelectorKeys = Object.keys(svcSelector);
+                
+                if (svcSelectorKeys.length === 0) {
+                    return;
+                }
+                
+                // Check if all service selector labels match the application selector
+                const matches = svcSelectorKeys.every(key => {
+                    return appSelector[key] === svcSelector[key];
+                });
+                
+                if (matches) {
+                    loadBalancers.push(svc);
+                }
+            });
+            
+            return loadBalancers;
+        }
+        
+        // Render applications
+        function renderApplications() {
+            const panel = document.getElementById('applications-panel');
+            
+            let applications = [];
+            
+            // Process all workloads from deployments array (contains both Deployments and StatefulSets)
+            if (clusterData.deployments) {
+                clusterData.deployments.forEach(workload => {
+                    applications.push({
+                        name: workload.name,
+                        namespace: workload.namespace,
+                        type: workload.type === 'StatefulSet' ? 'statefulset' : 'deployment',
+                        replicas: workload.replicas,
+                        ready_replicas: workload.ready_replicas,
+                        pods: workload.pods || [],
+                        selector: workload.selector || {}
+                    });
+                });
+            }
+            
+            // Filter applications
+            applications = applications.filter(app => {
+                // Handle search filters first (they override button filters)
+                if (currentFilters.searchNamespace) {
+                    if (!app.namespace.toLowerCase().includes(currentFilters.searchNamespace.toLowerCase())) {
+                        return false;
+                    }
+                }
+                
+                if (currentFilters.searchApp) {
+                    if (!app.name.toLowerCase().includes(currentFilters.searchApp.toLowerCase())) {
+                        return false;
+                    }
+                }
+                
+                // If search filters are active, skip button filters
+                if (currentFilters.searchNamespace || currentFilters.searchApp) {
+                    return true;
+                }
+                
+                // Handle type filter
+                if (currentFilters.type === 'deployment' && app.type !== 'deployment') {
+                    return false;
+                }
+                if (currentFilters.type === 'statefulset' && app.type !== 'statefulset') {
+                    return false;
+                }
+                if (currentFilters.type === 'system') {
+                    // System filter shows all workloads in system namespaces
+                    if (!isSystemNamespace(app.namespace)) {
+                        return false;
+                    }
+                }
+                
+                // Handle namespace filter (only if type filter is not 'system')
+                if (currentFilters.type !== 'system') {
+                    if (currentFilters.namespace === 'app' && isSystemNamespace(app.namespace)) {
                         return false;
                     }
                     
-                    // Check deployment name patterns
-                    const systemDeploymentPrefixes = [
-                        'kube-', 'coredns', 'calico-', 'tigera-', 'metallb-',
-                        'ingress-', 'cert-manager', 'prometheus', 'grafana',
-                        'alertmanager', 'node-exporter', 'kube-state-metrics', 'metrics-server'
-                    ];
+                    if (currentFilters.namespace === 'system' && !isSystemNamespace(app.namespace)) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+            
+            if (applications.length === 0) {
+                panel.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">—</div>
+                        <div>No applications found</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            applications.forEach(app => {
+                const badgeClass = app.type === 'deployment' ? 'badge-deployment' : 'badge-statefulset';
+                const badgeText = app.type === 'deployment' ? 'Deployment' : 'StatefulSet';
+                
+                // Find load balancers for this application
+                const loadBalancers = findLoadBalancersForApp(app.name, app.namespace, app.selector);
+                
+                html += `
+                    <div class="app-card" id="app-${app.namespace}-${app.name}">
+                        <div class="scaling-overlay">
+                            <div class="scaling-overlay-spinner"></div>
+                            <div class="scaling-overlay-text">Scaling in progress...</div>
+                            <div class="scaling-overlay-subtext">Please wait while replicas are being adjusted</div>
+                        </div>
+                        <div class="app-header">
+                            <div class="app-name">
+                                ${app.name}
+                                <span class="app-type-badge ${badgeClass}">${badgeText}</span>
+                `;
+                
+                // Add LB indicators for each load balancer
+                loadBalancers.forEach(lb => {
+                    const isPending = !lb.load_balancer_ip;
+                    const pendingClass = isPending ? 'pending' : '';
+                    const tooltipPendingClass = isPending ? 'pending' : '';
                     
-                    const deploymentName = deployment.name.toLowerCase();
-                    return !systemDeploymentPrefixes.some(prefix => deploymentName.startsWith(prefix));
+                    html += `
+                                <span class="lb-indicator ${pendingClass}">
+                                    LB
+                                    <div class="lb-tooltip ${tooltipPendingClass}">
+                                        <div class="lb-tooltip-header">${lb.name}</div>
+                    `;
+                    
+                    // External IP section
+                    if (lb.load_balancer_ip) {
+                        html += `
+                                        <div class="lb-tooltip-ip">
+                                            <div class="lb-tooltip-ip-label">EXTERNAL IP</div>
+                                            <div class="lb-tooltip-ip-value">${lb.load_balancer_ip}</div>
+                                        </div>
+                        `;
+                    } else {
+                        html += `
+                                        <div class="lb-tooltip-ip pending">
+                                            <div class="lb-tooltip-ip-label">EXTERNAL IP</div>
+                                            <div class="lb-tooltip-ip-value">Pending...</div>
+                                        </div>
+                        `;
+                    }
+                    
+                    // Service details
+                    html += `
+                                        <div class="lb-tooltip-section">
+                                            <div class="lb-tooltip-label">Cluster IP</div>
+                                            <div class="lb-tooltip-value">${lb.cluster_ip || 'None'}</div>
+                                        </div>
+                    `;
+                    
+                    // Ports
+                    if (lb.ports && lb.ports.length > 0) {
+                        html += `
+                                        <div class="lb-tooltip-section">
+                                            <div class="lb-tooltip-label">Ports</div>
+                                            <div class="lb-tooltip-ports">
+                        `;
+                        lb.ports.forEach(port => {
+                            const portName = port.name ? `${port.name}: ` : '';
+                            const targetPort = port.target_port ? `:${port.target_port}` : '';
+                            html += `
+                                                <div class="lb-tooltip-port">${portName}${port.port}${targetPort} ${port.protocol || 'TCP'}</div>
+                            `;
+                        });
+                        html += `
+                                            </div>
+                                        </div>
+                        `;
+                    }
+                    
+                    html += `
+                                    </div>
+                                </span>
+                    `;
                 });
                 
-                // Show up to 8 application deployments
-                applicationDeployments.slice(0, 8).forEach(deployment => {
-                    // Calculate deployment health
-                    const healthPercentage = deployment.replicas > 0 ? Math.round((deployment.ready_replicas / deployment.replicas) * 100) : 0;
-                    let healthIcon = '✅';
-                    let healthStatus = 'Healthy';
-                    
-                    if (healthPercentage < 100) {
-                        healthIcon = '⚠️';
-                        healthStatus = 'Degraded';
-                    }
-                    if (healthPercentage === 0) {
-                        healthIcon = '❌';
-                        healthStatus = 'Failed';
-                    }
-                    
-                    // Find associated pods for this deployment
-                    let podCount = 0;
-                    let runningPods = 0;
-                    if (data.master_nodes) {
-                        data.master_nodes.forEach(node => {
-                            if (node.pods) {
-                                node.pods.forEach(pod => {
-                                    if (pod.labels && pod.labels.app === deployment.name) {
-                                        podCount++;
-                                        if (pod.status === 'Running') runningPods++;
-                                    }
-                                });
-                            }
-                        });
-                    }
-                    if (data.worker_pools) {
-                        Object.values(data.worker_pools).forEach(pool => {
-                            pool.forEach(node => {
-                                if (node.pods) {
-                                    node.pods.forEach(pod => {
-                                        if (pod.labels && pod.labels.app === deployment.name) {
-                                            podCount++;
-                                            if (pod.status === 'Running') runningPods++;
-                                        }
-                                    });
-                                }
-                            });
-                        });
-                    }
-                    
-                    // Get dynamic application info
-                    let dynamicInfo = '';
-                    
-                    // Try to get container image from deployment
-                    if (deployment.containers && deployment.containers.length > 0) {
-                        const mainContainer = deployment.containers[0];
-                        if (mainContainer.image) {
-                            // Clean up image name for display
-                            let imageName = mainContainer.image;
-                            if (imageName.includes('/')) {
-                                imageName = imageName.split('/').pop();
-                            }
-                            if (imageName.length > 30) {
-                                imageName = imageName.substring(0, 27) + '...';
-                            }
-                            dynamicInfo = `🐳 Image: ${imageName}`;
-                        }
-                    }
-                    
-                    // If no image info, try to get creation time/age
-                    if (!dynamicInfo && deployment.creation_timestamp) {
-                        try {
-                            const createdDate = new Date(deployment.creation_timestamp);
-                            const now = new Date();
-                            const diffMs = now - createdDate;
-                            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                            
-                            if (diffDays > 0) {
-                                dynamicInfo = `⏱️ Running for ${diffDays} day${diffDays > 1 ? 's' : ''}`;
-                            } else if (diffHours > 0) {
-                                dynamicInfo = `⏱️ Running for ${diffHours} hour${diffHours > 1 ? 's' : ''}`;
-                            } else {
-                                dynamicInfo = `⏱️ Recently started`;
-                            }
-                        } catch (e) {
-                            // Fallback if date parsing fails
-                            dynamicInfo = `⏱️ Active deployment`;
-                        }
-                    }
-                    
-                    // Fallback if no other info available
-                    if (!dynamicInfo) {
-                        dynamicInfo = `🚀 Active workload`;
-                    }
+                html += `
+                            </div>
+                        </div>
+                        <div class="app-stats">
+                            <div class="stat-item">
+                                <span>Namespace:</span>
+                                <span class="stat-value">${app.namespace}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span>Pods:</span>
+                                <span class="stat-value">${app.ready_replicas}/${app.replicas}</span>
+                            </div>
+                        </div>
+                        <div class="replica-controls" id="replica-controls-${app.namespace}-${app.name}">
+                            <span class="replica-label">Replicas:</span>
+                            <button class="scale-btn" onclick="scaleReplicas('${app.namespace}', '${app.name}', '${app.type}', ${app.replicas - 1})" ${app.replicas <= 0 ? 'disabled' : ''}>−</button>
+                            <span class="replica-value">${app.replicas}</span>
+                            <button class="scale-btn" onclick="scaleReplicas('${app.namespace}', '${app.name}', '${app.type}', ${app.replicas + 1})">+</button>
+                            <div class="scaling-indicator">
+                                <div class="scaling-indicator-spinner"></div>
+                                <span>Scaling...</span>
+                            </div>
+                        </div>
+                        <div class="pod-list">
+                `;
+                
+                app.pods.forEach(pod => {
+                    const nodeName = pod.node || 'Unknown';
+                    const statusClass = pod.status === 'Running' ? '' : 
+                                       pod.status === 'Pending' ? 'pending' : 'failed';
                     
                     html += `
-                        <div class="component deployment">
-                            <div class="component-icon">📦</div>
-                            <div class="component-name">${deployment.name}</div>
-                            <div class="component-detail">${healthIcon} ${healthStatus} (${deployment.ready_replicas}/${deployment.replicas} replicas)</div>
-                            <div class="component-detail">📍 Namespace: ${deployment.namespace}</div>
-                            ${podCount > 0 ? `<div class="component-detail">🏃 Running Pods: ${runningPods}/${podCount}</div>` : ''}
-                            <div class="component-explanation">${dynamicInfo}</div>
+                        <div class="pod-item">
+                            <span class="pod-name">${pod.name}</span>
+                            <span class="pod-node">
+                                <span class="status-dot ${statusClass}"></span>
+                                ${nodeName}
+                            </span>
                         </div>
                     `;
                 });
-            } else {
+                
                 html += `
-                    <div class="component deployment">
-                        <div class="component-icon">📦</div>
-                        <div class="component-name">No Application Deployments</div>
-                        <div class="component-detail">No user application deployments found</div>
+                        </div>
                     </div>
                 `;
+            });
+            
+            panel.innerHTML = html;
+        }
+        
+        // Helper: Check if pod should be displayed based on current filters
+        function shouldDisplayPod(pod) {
+            // Search filters take priority
+            if (currentFilters.searchNamespace || currentFilters.searchApp) {
+                // Filter by namespace search
+                if (currentFilters.searchNamespace && 
+                    !pod.namespace.toLowerCase().includes(currentFilters.searchNamespace.toLowerCase())) {
+                    return false;
+                }
+                
+                // Filter by app name search
+                if (currentFilters.searchApp) {
+                    // Check if pod belongs to a workload matching the search
+                    const matchingWorkload = clusterData.deployments?.find(workload => 
+                        workload.name.toLowerCase().includes(currentFilters.searchApp.toLowerCase()) &&
+                        workload.pods?.some(p => p.name === pod.name)
+                    );
+                    if (!matchingWorkload) {
+                        return false;
+                    }
+                }
+                
+                return true;
             }
             
-            html += '</div></div>';
+            // Button filters
+            // Handle type filter
+            if (currentFilters.type === 'deployment' || currentFilters.type === 'statefulset') {
+                // Find if this pod belongs to a deployment or statefulset of the filtered type
+                const workloadType = currentFilters.type === 'deployment' ? 'Deployment' : 'StatefulSet';
+                const matchingWorkload = clusterData.deployments?.find(workload => 
+                    workload.type === workloadType && 
+                    workload.pods?.some(p => p.name === pod.name)
+                );
+                if (!matchingWorkload) {
+                    return false;
+                }
+            } else if (currentFilters.type === 'system') {
+                // Show only system namespace pods
+                if (!isSystemNamespace(pod.namespace)) {
+                    return false;
+                }
+            }
             
-            // Control Plane
-            html += `
-                <div class="arch-layer control-layer">
-                    <div class="layer-title">🎛️ Control Plane</div>
-                    <div class="layer-description">Master nodes manage the cluster state and run control plane components</div>
-                    <div class="control-plane-grid">
-            `;
+            // Handle namespace filter (only if type filter is not 'system')
+            if (currentFilters.type !== 'system') {
+                if (currentFilters.namespace === 'app' && isSystemNamespace(pod.namespace)) {
+                    return false;
+                }
+                
+                if (currentFilters.namespace === 'system' && !isSystemNamespace(pod.namespace)) {
+                    return false;
+                }
+            }
             
-            if (data.master_nodes && data.master_nodes.length > 0) {
-                data.master_nodes.forEach(master => {
-                    // Filter pods based on current view for control plane too
-                    const filteredPods = filterPodsByView(master.pods || []);
-                    const runningPods = filteredPods.filter(pod => pod.status === 'Running').length;
-                    const totalPods = filteredPods.length;
-                    const nodeStatusIcon = master.status === 'Ready' ? '✅' : '❌';
-                    const podTypeLabel = currentPodView === 'system' ? 'System Pods' : 'Application Pods';
+            return true;
+        }
+        
+        // Render topology
+        function renderTopology() {
+            const panel = document.getElementById('topology-panel');
+            let html = '<div class="topology-container">';
+            
+            // Control Plane Nodes
+            if (clusterData.master_nodes && clusterData.master_nodes.length > 0) {
+                clusterData.master_nodes.forEach(node => {
+                    const allPods = node.pods || [];
+                    const filteredPods = allPods.filter(pod => shouldDisplayPod(pod));
+                    const runningPods = filteredPods.filter(p => p.status === 'Running').length;
                     
                     html += `
-                        <div class="component control-plane-detailed">
-                            <div class="control-plane-header">
-                                <div class="control-plane-title">${nodeStatusIcon} ${master.name}</div>
-                                <div class="control-plane-ip">${master.internal_ip || 'Unknown IP'}</div>
-                                <div class="control-plane-badge">CONTROL PLANE</div>
+                        <div class="node-card control-plane">
+                            <div class="node-header">
+                                <div class="node-name">${node.name}</div>
+                                <div class="node-type control-plane">Control Plane</div>
                             </div>
-                            
-                            <div class="control-plane-specs">
-                                <div class="spec-row">
-                                    <div class="spec-item">
-                                        <div class="spec-label">CPU</div>
-                                        <div class="spec-value">${master.cpu_capacity || 'Unknown'}</div>
-                                    </div>
-                                    <div class="spec-item">
-                                        <div class="spec-label">Memory</div>
-                                        <div class="spec-value">${formatMemory(master.memory_capacity)}</div>
-                                    </div>
-                                    <div class="spec-item">
-                                        <div class="spec-label">Status</div>
-                                        <div class="spec-value">${master.status || 'Unknown'}</div>
-                                    </div>
+                            <div class="node-specs">
+                                <div class="spec-item">
+                                    <div class="spec-label">CPU</div>
+                                    <div class="spec-value">${node.cpu_capacity || 'N/A'}</div>
                                 </div>
-                                <div class="spec-row">
-                                    <div class="spec-item">
-                                        <div class="spec-label">OS</div>
-                                        <div class="spec-value">${master.os || 'Unknown'}</div>
-                                    </div>
-                                    <div class="spec-item">
-                                        <div class="spec-label">Kubernetes</div>
-                                        <div class="spec-value">${master.version || 'Unknown'}</div>
-                                    </div>
-                                    <div class="spec-item">
-                                        <div class="spec-label">Runtime</div>
-                                        <div class="spec-value">${master.container_runtime ? master.container_runtime.split('://')[0] : 'Unknown'}</div>
-                                    </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Memory</div>
+                                    <div class="spec-value">${formatMemory(node.memory_capacity)}</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">IP Address</div>
+                                    <div class="spec-value">${node.internal_ip || node.external_ip || 'N/A'}</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Pods</div>
+                                    <div class="spec-value">${runningPods}/${filteredPods.length}</div>
                                 </div>
                             </div>
-                            
-                            <div class="control-plane-components">
-                                <div class="components-title">Core Components</div>
-                                <div class="components-grid">
-                                    <div class="component-badge">🌐 API Server</div>
-                                    <div class="component-badge">🗄️ etcd</div>
-                                    <div class="component-badge">📅 Scheduler</div>
-                                    <div class="component-badge">🎯 Controller Manager</div>
-                                </div>
-                            </div>
-                            
-                            <div class="control-plane-pods">
-                                <div class="pods-header">${podTypeLabel} (${runningPods}/${totalPods})</div>
-                                <div class="pods-list">
+                            <div class="node-pods">
                     `;
                     
-                    if (filteredPods.length > 0) {
-                        // Show ALL running pods from filtered list
-                        const runningPodsList = filteredPods.filter(pod => pod.status === 'Running');
-                        if (runningPodsList.length > 0) {
-                            runningPodsList.forEach(pod => {
-                                html += `<div class="pod-item control-plane-pod" title="${pod.namespace}/${pod.name}">${pod.name}</div>`;
-                            });
-                        } else {
-                            html += `<div style="font-size: 0.75rem; color: rgba(255,255,255,0.7); text-align: center;">No running ${currentPodView} pods</div>`;
-                        }
+                    if (filteredPods.length === 0) {
+                        html += `<div style="color: var(--text-muted); font-size: 0.75rem; font-style: italic;">No pods match current filters</div>`;
                     } else {
-                        html += `<div style="font-size: 0.75rem; color: rgba(255,255,255,0.7); text-align: center;">No ${currentPodView} pods</div>`;
+                        filteredPods.forEach(pod => {
+                            html += `<div class="pod-badge" title="${pod.namespace}/${pod.name}">${pod.name}</div>`;
+                        });
                     }
                     
                     html += `
-                                </div>
                             </div>
                         </div>
                     `;
                 });
-            } else {
-                html += `
-                    <div class="component control-plane">
-                        <div class="component-icon">🎛️</div>
-                        <div class="component-name">No Control Plane</div>
-                        <div class="component-detail">No master nodes found</div>
-                    </div>
-                `;
             }
-            
-            html += '</div></div>';
             
             // Worker Nodes
-            html += `
-                <div class="arch-layer worker-layer">
-                    <div class="layer-header">
-                        <div class="layer-title-section">
-                            <div class="layer-title">⚙️ Worker Nodes</div>
-                            <div class="layer-description">Worker nodes run application workloads and system pods</div>
-                        </div>
-                        <div class="pod-view-toggle">
-                            <button id="app-pods-btn" class="toggle-btn ${currentPodView === 'app' ? 'active' : ''}" onclick="togglePodView('app')">
-                                📱 Application Pods
-                            </button>
-                            <button id="system-pods-btn" class="toggle-btn ${currentPodView === 'system' ? 'active' : ''}" onclick="togglePodView('system')">
-                                ⚙️ System Pods
-                            </button>
-                        </div>
-                    </div>
-            `;
-            
-            if (data.worker_pools && Object.keys(data.worker_pools).length > 0) {
-                Object.entries(data.worker_pools).forEach(([poolName, nodes]) => {
-                    const totalNodesInPool = nodes.length;
-                    const readyNodesInPool = nodes.filter(node => node.status === 'Ready').length;
-                    
-                    // Calculate pod counts based on current filter
-                    const totalPodsInPool = nodes.reduce((sum, node) => {
-                        const filteredPods = filterPodsByView(node.pods || []);
-                        return sum + filteredPods.length;
-                    }, 0);
-                    const runningPodsInPool = nodes.reduce((sum, node) => {
-                        const filteredPods = filterPodsByView(node.pods || []);
-                        return sum + filteredPods.filter(pod => pod.status === 'Running').length;
-                    }, 0);
-                    
-                    html += `
-                        <div class="worker-pool-section">
-                            <div class="pool-header">
-                                <div class="pool-title">🏊 ${poolName}</div>
-                                <div class="pool-stats">
-                                    <span class="pool-stat">Nodes: ${readyNodesInPool}/${totalNodesInPool}</span>
-                                    <span class="pool-stat">Pods: ${runningPodsInPool}/${totalPodsInPool}</span>
-                                </div>
-                            </div>
-                            <div class="worker-nodes-grid">
-                    `;
-                    
+            if (clusterData.worker_pools) {
+                Object.entries(clusterData.worker_pools).forEach(([poolName, nodes]) => {
                     nodes.forEach(node => {
-                        // Filter pods based on current view
-                        const filteredPods = filterPodsByView(node.pods || []);
-                        const runningPods = filteredPods.filter(pod => pod.status === 'Running').length;
-                        const totalPods = filteredPods.length;
-                        const nodeStatusIcon = node.status === 'Ready' ? '✅' : '❌';
-                        
-                        const podTypeLabel = currentPodView === 'system' ? 'System Pods' : 'Application Pods';
+                        const allPods = node.pods || [];
+                        const filteredPods = allPods.filter(pod => shouldDisplayPod(pod));
+                        const runningPods = filteredPods.filter(p => p.status === 'Running').length;
                         
                         html += `
-                            <div class="component worker-node">
+                            <div class="node-card worker">
                                 <div class="node-header">
-                                    <div class="node-name">${nodeStatusIcon} ${node.name}</div>
-                                    <div class="node-ip">${node.internal_ip || 'Unknown IP'}</div>
-                                    <div class="node-pool-badge">${poolName}</div>
+                                    <div class="node-name">${node.name}</div>
+                                    <div class="node-type worker">Worker</div>
                                 </div>
                                 <div class="node-specs">
                                     <div class="spec-item">
                                         <div class="spec-label">CPU</div>
-                                        <div class="spec-value">${node.cpu_capacity || 'Unknown'}</div>
+                                        <div class="spec-value">${node.cpu_capacity || 'N/A'}</div>
                                     </div>
                                     <div class="spec-item">
                                         <div class="spec-label">Memory</div>
                                         <div class="spec-value">${formatMemory(node.memory_capacity)}</div>
                                     </div>
                                     <div class="spec-item">
-                                        <div class="spec-label">Status</div>
-                                        <div class="spec-value">${node.status || 'Unknown'}</div>
+                                        <div class="spec-label">IP Address</div>
+                                        <div class="spec-value">${node.internal_ip || node.external_ip || 'N/A'}</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-label">Pods</div>
+                                        <div class="spec-value">${runningPods}/${filteredPods.length}</div>
                                     </div>
                                 </div>
-                                <div class="pods-section">
-                                    <div class="pods-header">${podTypeLabel} (${runningPods}/${totalPods})</div>
-                                    <div class="pods-list">
+                                <div class="node-pods">
                         `;
                         
-                        if (filteredPods.length > 0) {
-                            // Show ALL running pods from filtered list
-                            const runningPodsList = filteredPods.filter(pod => pod.status === 'Running');
-                            if (runningPodsList.length > 0) {
-                                runningPodsList.forEach(pod => {
-                                    html += `<div class="pod-item" title="${pod.namespace}/${pod.name}">${pod.name}</div>`;
-                                });
-                            } else {
-                                html += `<div style="font-size: 0.75rem; color: rgba(255,255,255,0.7); text-align: center;">No running ${currentPodView} pods</div>`;
-                            }
+                        if (filteredPods.length === 0) {
+                            html += `<div style="color: var(--text-muted); font-size: 0.75rem; font-style: italic;">No pods match current filters</div>`;
                         } else {
-                            html += `<div style="font-size: 0.75rem; color: rgba(255,255,255,0.7); text-align: center;">No ${currentPodView} pods</div>`;
+                            filteredPods.forEach(pod => {
+                                html += `<div class="pod-badge" title="${pod.namespace}/${pod.name}">${pod.name}</div>`;
+                            });
                         }
                         
                         html += `
-                                    </div>
                                 </div>
                             </div>
                         `;
                     });
-                    
-                    html += `
-                            </div>
-                        </div>
-                    `;
                 });
-            } else {
-                html += `
-                    <div class="worker-nodes-grid">
-                        <div class="component worker-node">
-                            <div class="component-icon">⚙️</div>
-                            <div class="component-name">No Worker Nodes</div>
-                            <div class="component-detail">No worker nodes found</div>
-                        </div>
-                    </div>
-                `;
             }
             
             html += '</div>';
-            html += '</div>';
-            
-            archContent.innerHTML = html;
+            panel.innerHTML = html;
         }
         
-        function formatMemory(memory) {
-            if (!memory) return 'Unknown';
-            if (memory.includes('Ki')) {
-                const kb = parseInt(memory.replace('Ki', ''));
-                const gb = (kb / 1024 / 1024).toFixed(1);
-                return `${gb} GB`;
+        // Set filter
+        function setFilter(type, value) {
+            currentFilters[type] = value;
+            
+            // Clear search inputs when using button filters
+            if (type === 'type' || type === 'namespace') {
+                currentFilters.searchNamespace = '';
+                currentFilters.searchApp = '';
+                document.getElementById('search-namespace').value = '';
+                document.getElementById('search-app').value = '';
             }
-            return memory;
-        }
-        
-        function createDeploymentTabs(data) {
-            const dynamicTabsContainer = document.getElementById('dynamic-app-tabs');
-            const dynamicContentContainer = document.getElementById('dynamic-app-content');
-            
-            // Clear existing dynamic tabs and content
-            dynamicTabsContainer.innerHTML = '';
-            dynamicContentContainer.innerHTML = '';
-            
-            if (data.deployments && data.deployments.length > 0) {
-                // Filter deployments based on current view and resource type
-                const filteredDeployments = data.deployments.filter(deployment => {
-                    // First filter by app/system view
-                    let matchesAppView = false;
-                    if (currentAppView === 'system') {
-                        matchesAppView = isSystemDeployment(deployment);
-                    } else {
-                        matchesAppView = !isSystemDeployment(deployment);
-                    }
-                    
-                    if (!matchesAppView) return false;
-                    
-                    // Then filter by resource type
-                    const deploymentType = deployment.type || 'Deployment';
-                    if (currentResourceType === 'all') {
-                        return true;
-                    } else if (currentResourceType === 'deployment') {
-                        return deploymentType === 'Deployment';
-                    } else if (currentResourceType === 'statefulset') {
-                        return deploymentType === 'StatefulSet';
-                    }
-                    return true;
-                });
-                
-                if (filteredDeployments.length > 0) {
-                    filteredDeployments.forEach((deployment, index) => {
-                        const deploymentId = deployment.name.replace(/[^a-zA-Z0-9]/g, '-');
-                        const icon = getDeploymentIcon(deployment.name);
-                        
-                        // Create tab
-                        const tab = document.createElement('button');
-                        tab.className = 'app-tab';
-                        tab.setAttribute('data-app', deploymentId);
-                        const typeBadge = deployment.type === 'StatefulSet' ? '<span style="font-size: 0.7em; opacity: 0.7;">⚙️</span> ' : '';
-                        tab.innerHTML = `${icon} ${typeBadge}${deployment.name}`;
-                        tab.onclick = () => switchTab(deploymentId);
-                        dynamicTabsContainer.appendChild(tab);
-                        
-                        // Create content
-                        const content = document.createElement('div');
-                        content.className = 'app-content';
-                        content.id = `${deploymentId}-content`;
-                        content.innerHTML = createDeploymentContent(deployment, data);
-                        dynamicContentContainer.appendChild(content);
-                    });
-                    
-                    // Activate the first deployment tab if no tab is currently active
-                    const activeTab = document.querySelector('.app-tab.active');
-                    if (!activeTab || activeTab.getAttribute('data-app') === 'overview') {
-                        const firstDeploymentId = filteredDeployments[0].name.replace(/[^a-zA-Z0-9]/g, '-');
-                        // Don't auto-switch away from overview, just ensure tabs are ready
-                    }
-                } else {
-                    // Show message when no deployments match the filter
-                    const viewType = currentAppView === 'system' ? 'system' : 'application';
-                    let resourceTypeText = '';
-                    if (currentResourceType === 'deployment') {
-                        resourceTypeText = 'Deployments';
-                    } else if (currentResourceType === 'statefulset') {
-                        resourceTypeText = 'StatefulSets';
-                    } else {
-                        resourceTypeText = 'resources';
-                    }
-                    
-                    dynamicContentContainer.innerHTML = `
-                        <div class="app-content active" style="text-align: center; padding: 2rem;">
-                            <h3>No ${viewType} ${resourceTypeText} found</h3>
-                            <p>There are currently no ${viewType} ${resourceTypeText} in this cluster.</p>
-                            <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 1rem;">Try adjusting the filters above to see different resources.</p>
-                        </div>
-                    `;
-                }
-            }
-        }
-        
-        function getDeploymentIcon(deploymentName) {
-            const name = deploymentName.toLowerCase();
-            if (name.includes('prism-vnc-proxy')) return '🖥️';
-            if (name.includes('prism') && (name.includes('console') || name.includes('dashboard'))) return '📊';
-            if (name.includes('apache') || name.includes('nginx') || name.includes('web')) return '🌐';
-            if (name.includes('flask') || name.includes('api') || name.includes('backend')) return '📊';
-            if (name.includes('database') || name.includes('db') || name.includes('mysql') || name.includes('postgres')) return '🗄️';
-            if (name.includes('redis') || name.includes('cache')) return '⚡';
-            if (name.includes('monitoring') || name.includes('prometheus') || name.includes('grafana')) return '📈';
-            if (name.includes('visualizer') || name.includes('dashboard')) return '📊';
-            return '📦';
-        }
-        
-        function createDeploymentContent(deployment, clusterData) {
-            const deploymentPods = [];
-            const nodeDistribution = {};
-            
-            // Find all pods for this deployment
-            if (clusterData.master_nodes) {
-                clusterData.master_nodes.forEach(node => {
-                    if (node.pods) {
-                        node.pods.forEach(pod => {
-                            if (isDeploymentPod(pod, deployment)) {
-                                deploymentPods.push({...pod, nodeName: node.name, nodeIP: node.internal_ip});
-                                if (!nodeDistribution[node.name]) {
-                                    nodeDistribution[node.name] = {
-                                        name: node.name,
-                                        ip: node.internal_ip,
-                                        type: 'control-plane',
-                                        pods: []
-                                    };
-                                }
-                                nodeDistribution[node.name].pods.push(pod);
-                            }
-                        });
-                    }
-                });
-            }
-            
-            if (clusterData.worker_pools) {
-                Object.values(clusterData.worker_pools).forEach(pool => {
-                    pool.forEach(node => {
-                        if (node.pods) {
-                            node.pods.forEach(pod => {
-                                if (isDeploymentPod(pod, deployment)) {
-                                    deploymentPods.push({...pod, nodeName: node.name, nodeIP: node.internal_ip});
-                                    if (!nodeDistribution[node.name]) {
-                                        nodeDistribution[node.name] = {
-                                            name: node.name,
-                                            ip: node.internal_ip,
-                                            type: 'worker',
-                                            pods: []
-                                        };
-                                    }
-                                    nodeDistribution[node.name].pods.push(pod);
-                                }
-                            });
-                        }
-                    });
-                });
-            }
-            
-            const runningPods = deploymentPods.filter(pod => pod.status === 'Running').length;
-            const totalPods = deploymentPods.length;
-            
-            const deploymentId = deployment.name.replace(/[^a-zA-Z0-9]/g, '-');
-            
-            const resourceType = deployment.type || 'Deployment';
-            const typeBadge = resourceType === 'StatefulSet' ? '<span class="type-badge statefulset">StatefulSet</span>' : '<span class="type-badge deployment">Deployment</span>';
-            
-            let html = `
-                <div class="deployment-detail-view">
-                    <div class="deployment-header">
-                        <div>
-                            <div class="deployment-title">${getDeploymentIcon(deployment.name)} ${deployment.name} ${typeBadge}</div>
-                            <div class="deployment-info">
-                                Namespace: ${deployment.namespace} | 
-                                Replicas: ${deployment.ready_replicas}/${deployment.replicas} | 
-                                Running Pods: ${runningPods}/${totalPods}
-                            </div>
-                        </div>
-                        <div class="deployment-actions">
-                            <button class="action-btn refresh" onclick="refreshDeploymentData('${deployment.namespace}', '${deployment.name}')">
-                                🔄 Refresh
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Replica Management Controls -->
-                    <div class="replica-controls">
-                        <span class="replica-label">Replicas:</span>
-                        <input type="number" 
-                               class="replica-input" 
-                               id="replica-input-${deploymentId}" 
-                               value="${deployment.replicas}" 
-                               min="0" 
-                               max="20">
-                        <div class="quick-actions">
-                            <button class="replica-btn quick" onclick="scaleDeploymentQuick('${deployment.namespace}', '${deployment.name}', 0)" title="Scale to 0">0</button>
-                            <button class="replica-btn quick" onclick="scaleDeploymentQuick('${deployment.namespace}', '${deployment.name}', 1)" title="Scale to 1">1</button>
-                            <button class="replica-btn quick" onclick="scaleDeploymentQuick('${deployment.namespace}', '${deployment.name}', 3)" title="Scale to 3">3</button>
-                            <button class="replica-btn quick" onclick="scaleDeploymentQuick('${deployment.namespace}', '${deployment.name}', 5)" title="Scale to 5">5</button>
-                        </div>
-                        <button class="replica-btn scale" 
-                                id="scale-btn-${deploymentId}"
-                                onclick="scaleDeploymentFromInput('${deployment.namespace}', '${deployment.name}', '${deploymentId}')">
-                            Scale
-                        </button>
-                        <span class="replica-status ${deployment.ready_replicas === deployment.replicas ? 'success' : 'loading'}" id="replica-status-${deploymentId}">
-                            ${deployment.ready_replicas === deployment.replicas ? 
-                                `✅ ${deployment.ready_replicas}/${deployment.replicas} Ready` : 
-                                `⏳ ${deployment.ready_replicas}/${deployment.replicas} Ready`}
-                        </span>
-                    </div>
-                    
-                    <div class="section-title">📍 Pod Distribution Across Nodes</div>
-                    <div class="pod-distribution">
-            `;
-            
-            Object.values(nodeDistribution).forEach(node => {
-                const nodeRunningPods = node.pods.filter(pod => pod.status === 'Running').length;
-                const nodeTotalPods = node.pods.length;
-                
-                html += `
-                    <div class="node-pod-card">
-                        <div class="node-card-header">
-                            <div class="node-card-name">${node.type === 'control-plane' ? '🎛️' : '⚙️'} ${node.name}</div>
-                            <div class="node-card-ip">${node.ip || 'Unknown IP'}</div>
-                            <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">
-                                ${nodeRunningPods}/${nodeTotalPods} pods running
-                            </div>
-                        </div>
-                        <div class="pod-grid">
-                `;
-                
-                node.pods.forEach(pod => {
-                    const statusClass = pod.status.toLowerCase();
-                    html += `
-                        <div class="pod-card ${statusClass}">
-                            <div class="pod-name" title="${pod.namespace}/${pod.name}">${pod.name}</div>
-                            <div class="pod-status ${statusClass}">${pod.status}</div>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
-            });
-            
-            if (Object.keys(nodeDistribution).length === 0) {
-                html += `
-                    <div class="node-pod-card">
-                        <div class="node-card-header">
-                            <div class="node-card-name">No Pods Found</div>
-                            <div class="node-card-ip">This deployment has no running pods</div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            html += `
-                    </div>
-                </div>
-            `;
-            
-            return html;
-        }
-        
-        function isDeploymentPod(pod, deployment) {
-            // First check if namespaces match
-            if (pod.namespace !== deployment.namespace) {
-                return false;
-            }
-            
-            // First, try to match using labels (most reliable)
-            if (pod.labels && deployment.selector) {
-                let allLabelsMatch = true;
-                for (const [key, value] of Object.entries(deployment.selector)) {
-                    if (pod.labels[key] !== value) {
-                        allLabelsMatch = false;
-                        break;
-                    }
-                }
-                if (allLabelsMatch && Object.keys(deployment.selector).length > 0) {
-                    return true;
-                }
-            }
-            
-            // Fallback to name pattern matching, but be more precise
-            // Pod names typically follow pattern: deployment-name-replicaset-hash-pod-hash
-            // We need to ensure the pod name starts with deployment name followed by a dash
-            // and that it's not just a substring match
-            const expectedPrefix = deployment.name + '-';
-            if (pod.name.startsWith(expectedPrefix)) {
-                // Additional check: make sure it's not a partial match
-                // The character after deployment name should be a dash followed by replicaset hash
-                const afterPrefix = pod.name.substring(expectedPrefix.length);
-                // ReplicaSet hash is typically alphanumeric, so check if it starts with alphanumeric
-                if (afterPrefix.match(/^[a-z0-9]/)) {
-                    return true;
-                }
-            }
-            
-            return false;
-        }
-        
-        function isSystemDeployment(deployment) {
-            // Define system namespaces
-            const systemNamespaces = [
-                'kube-system',
-                'kube-public',
-                'kube-node-lease',
-                'kommander',
-                'kommander-flux',
-                'gatekeeper-system',
-                'cert-manager',
-                'metallb-system',
-                'ingress-nginx',
-                'monitoring',
-                'logging',
-                'velero',
-                'istio-system',
-                'linkerd',
-                'calico-system',
-                'tigera-operator',
-                'ntnx-system',
-                'nutanix-platform'
-            ];
-            
-            // Check if deployment is in a system namespace
-            if (systemNamespaces.includes(deployment.namespace)) {
-                return true;
-            }
-            
-            // Check deployment name patterns
-            const systemDeploymentPrefixes = [
-                'kube-',
-                'coredns',
-                'calico-',
-                'tigera-',
-                'metallb-',
-                'ingress-',
-                'cert-manager',
-                'prometheus',
-                'grafana',
-                'alertmanager',
-                'node-exporter',
-                'kube-state-metrics',
-                'metrics-server'
-            ];
-            
-            const deploymentName = deployment.name.toLowerCase();
-            return systemDeploymentPrefixes.some(prefix => deploymentName.startsWith(prefix));
-        }
-        
-        function switchTab(appName) {
-            // Remove active class from all tabs and content
-            document.querySelectorAll('.app-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.app-content').forEach(content => content.classList.remove('active'));
-            
-            // Add active class to selected tab and content
-            document.querySelector(`[data-app="${appName}"]`).classList.add('active');
-            document.getElementById(`${appName}-content`).classList.add('active');
-        }
-        
-        function showDeploymentView(deploymentId) {
-            switchTab(deploymentId);
-        }
-        
-        function isSystemPod(pod) {
-            // Define system namespaces and pod name patterns
-            const systemNamespaces = [
-                'kube-system',
-                'kube-public',
-                'kube-node-lease',
-                'kommander',
-                'kommander-flux',
-                'gatekeeper-system',
-                'cert-manager',
-                'metallb-system',
-                'ingress-nginx',
-                'monitoring',
-                'logging',
-                'velero',
-                'istio-system',
-                'linkerd',
-                'calico-system',
-                'tigera-operator',
-                'ntnx-system',
-                'nutanix-platform'
-            ];
-            
-            const systemPodPrefixes = [
-                'kube-',
-                'coredns',
-                'etcd',
-                'calico-',
-                'tigera-',
-                'metallb-',
-                'nginx-',
-                'cert-manager',
-                'prometheus-',
-                'grafana-',
-                'alertmanager-',
-                'node-exporter',
-                'kube-state-metrics',
-                'fluentd-',
-                'fluent-bit-',
-                'velero-',
-                'istio-',
-                'linkerd-',
-                'blackbox-exporter',
-                'csi-snapshot-',
-                'kubernetes-events-',
-                'nutanix-csi-'
-            ];
-            
-            // Check if pod is in a system namespace
-            if (systemNamespaces.includes(pod.namespace)) {
-                return true;
-            }
-            
-            // Check if pod name starts with system prefixes
-            return systemPodPrefixes.some(prefix => pod.name.startsWith(prefix));
-        }
-        
-        function togglePodView(viewType) {
-            currentPodView = viewType;
-            
-            // Re-render the architecture with the new filter
-            // Button states will be set correctly during re-render
-            if (clusterData) {
-                renderArchitecture(clusterData);
-            }
-        }
-        
-        function toggleAppView(viewType) {
-            currentAppView = viewType;
             
             // Update button states
-            document.getElementById('app-deployments-btn').classList.toggle('active', viewType === 'app');
-            document.getElementById('system-deployments-btn').classList.toggle('active', viewType === 'system');
-            
-            // Re-render the application tabs with the new filter
-            if (clusterData) {
-                createDeploymentTabs(clusterData);
+            if (type === 'type') {
+                document.querySelectorAll('[data-filter]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.filter === value);
+                });
+            } else if (type === 'namespace') {
+                document.querySelectorAll('[data-filter-ns]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.filterNs === value);
+                });
             }
+            
+            renderApplications();
+            renderTopology();
         }
         
-        function toggleResourceType(resourceType) {
-            currentResourceType = resourceType;
-            
-            // Update button states
-            document.getElementById('all-resources-btn').classList.toggle('active', resourceType === 'all');
-            document.getElementById('deployments-only-btn').classList.toggle('active', resourceType === 'deployment');
-            document.getElementById('statefulsets-only-btn').classList.toggle('active', resourceType === 'statefulset');
-            
-            // Re-render the application tabs with the new filter
-            if (clusterData) {
-                createDeploymentTabs(clusterData);
+        // Set search filter
+        function setSearchFilter(type, value) {
+            if (type === 'namespace') {
+                currentFilters.searchNamespace = value;
+            } else if (type === 'app') {
+                currentFilters.searchApp = value;
             }
+            
+            // Clear button filters when using search
+            if (value) {
+                document.querySelectorAll('[data-filter]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelectorAll('[data-filter-ns]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+            }
+            
+            renderApplications();
+            renderTopology();
         }
         
-        function filterPodsByView(pods) {
-            if (!pods) return [];
+        // Scale replicas
+        function scaleReplicas(namespace, name, type, newReplicas) {
+            if (newReplicas < 0) return;
             
-            if (currentPodView === 'system') {
-                return pods.filter(pod => isSystemPod(pod));
-            } else {
-                return pods.filter(pod => !isSystemPod(pod));
-            }
+            scaleAction = { namespace, name, type, newReplicas };
+            
+            document.getElementById('modal-body').innerHTML = `
+                Are you sure you want to scale <strong>${name}</strong> in namespace <strong>${namespace}</strong> to <strong>${newReplicas}</strong> replicas?
+            `;
+            
+            document.getElementById('scale-modal').classList.add('show');
         }
         
-        async function refreshData() {
-            // Store the currently active tab before refreshing
-            const activeTab = document.querySelector('.app-tab.active');
-            const currentActiveApp = activeTab ? activeTab.getAttribute('data-app') : 'overview';
+        // Confirm scale
+        async function confirmScale() {
+            if (!scaleAction) return;
             
-            const data = await fetchClusterData();
-            if (data) {
-                clusterData = data;
-                updateClusterInfo(data);
-                renderArchitecture(data);
-                createDeploymentTabs(data);
-                
-                // Restore the previously active tab after a short delay to ensure DOM is updated
-                setTimeout(() => {
-                    const tabToActivate = document.querySelector(`[data-app="${currentActiveApp}"]`);
-                    if (tabToActivate) {
-                        switchTab(currentActiveApp);
-                    } else {
-                        // If the previously active tab no longer exists, default to overview
-                        switchTab('overview');
-                    }
-                }, 100);
+            // Save the action before closing modal (which sets scaleAction to null)
+            const action = { ...scaleAction };
+            
+            closeModal();
+            
+            // Show loading indicator on the specific app card
+            const appCard = document.getElementById(`app-${action.namespace}-${action.name}`);
+            const replicaControls = document.getElementById(`replica-controls-${action.namespace}-${action.name}`);
+            
+            if (appCard) {
+                appCard.classList.add('scaling');
             }
-        }
-        
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            refreshData();
+            if (replicaControls) {
+                replicaControls.classList.add('scaling');
+            }
             
-            // Set up overview tab click handler
-            document.querySelector('[data-app="overview"]').addEventListener('click', () => {
-                switchTab('overview');
-            });
-            
-            // Set up auto-refresh every 30 seconds
-            // DISABLED: Auto-refresh interferes with user navigation
-            // refreshInterval = setInterval(refreshData, 30000);
-        });
-        
-        // Note: Auto-refresh cleanup code removed since auto-refresh is disabled
-        
-        // Replica Management Functions
-        async function scaleDeployment(namespace, deploymentName, replicas) {
-            const deploymentId = deploymentName.replace(/[^a-zA-Z0-9]/g, '-');
-            const statusElement = document.getElementById(`replica-status-${deploymentId}`);
-            const scaleButton = document.getElementById(`scale-btn-${deploymentId}`);
-            const inputElement = document.getElementById(`replica-input-${deploymentId}`);
+            // Show loading notification
+            showNotification(`Scaling ${action.name} to ${action.newReplicas} replicas...`, 'loading', true);
             
             try {
-                // Update UI to show loading state
-                if (statusElement) {
-                    statusElement.textContent = 'Scaling...';
-                    statusElement.className = 'replica-status loading';
-                }
-                if (scaleButton) {
-                    scaleButton.disabled = true;
-                    scaleButton.textContent = 'Scaling...';
-                }
-                
-                // Update input to show the target replicas
-                if (inputElement) {
-                    inputElement.value = replicas;
-                }
-                
-                const response = await fetch(`/api/deployments/${namespace}/${deploymentName}/scale`, {
+                const response = await fetch(`/api/deployments/${action.namespace}/${action.name}/scale`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ replicas: parseInt(replicas) })
+                    body: JSON.stringify({ replicas: action.newReplicas })
                 });
                 
                 const result = await response.json();
                 
+                // Remove loading indicators
+                if (appCard) {
+                    appCard.classList.remove('scaling');
+                }
+                if (replicaControls) {
+                    replicaControls.classList.remove('scaling');
+                }
+                
                 if (response.ok && result.success) {
-                    // Success - start polling for actual pod status
-                    if (statusElement) {
-                        statusElement.textContent = `Scaling to ${replicas}...`;
-                        statusElement.className = 'replica-status loading';
-                    }
-                    showNotification(`Scaling ${deploymentName} to ${replicas} replicas...`, 'info');
-                    
-                    // Start continuous polling until all replicas are ready
-                    pollDeploymentStatus(namespace, deploymentName, parseInt(replicas));
+                    showNotification(`Successfully scaled ${action.name} to ${action.newReplicas} replicas`, 'success');
+                    setTimeout(loadClusterData, 2000);
                 } else {
-                    // Error
-                    const errorMsg = result.error || 'Failed to scale deployment';
-                    if (statusElement) {
-                        statusElement.textContent = 'Scale failed';
-                        statusElement.className = 'replica-status error';
-                    }
-                    showNotification(`Error scaling ${deploymentName}: ${errorMsg}`, 'error');
+                    const errorMsg = result.error || result.message || 'Unknown error';
+                    showNotification(`Failed to scale: ${errorMsg}`, 'error');
+                    console.error('Scale error:', result);
                 }
             } catch (error) {
-                console.error('Error scaling deployment:', error);
-                if (statusElement) {
-                    statusElement.textContent = 'Scale failed';
-                    statusElement.className = 'replica-status error';
+                // Remove loading indicators on error
+                if (appCard) {
+                    appCard.classList.remove('scaling');
                 }
-                showNotification(`Error scaling ${deploymentName}: ${error.message}`, 'error');
-            } finally {
-                // Re-enable the scale button
-                if (scaleButton) {
-                    scaleButton.disabled = false;
-                    scaleButton.textContent = 'Scale';
+                if (replicaControls) {
+                    replicaControls.classList.remove('scaling');
                 }
-                
-                // Reset status after 5 seconds
+                showNotification(`Failed to scale replicas: ${error.message}`, 'error');
+                console.error('Scale exception:', error);
+            }
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('scale-modal').classList.remove('show');
+            scaleAction = null;
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'success', persistent = false) {
+            const notification = document.getElementById('notification');
+            
+            // Clear any existing content
+            notification.innerHTML = '';
+            
+            // Add spinner for loading type
+            if (type === 'loading') {
+                const spinner = document.createElement('div');
+                spinner.className = 'notification-spinner';
+                notification.appendChild(spinner);
+            }
+            
+            // Add message text
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = message;
+            notification.appendChild(messageSpan);
+            
+            notification.className = `notification ${type} show`;
+            
+            // Auto-hide after 3 seconds unless persistent (for loading states)
+            if (!persistent) {
                 setTimeout(() => {
-                    if (statusElement && statusElement.className.includes('success')) {
-                        statusElement.textContent = 'Ready';
-                        statusElement.className = 'replica-status';
-                    }
-                }, 5000);
+                    notification.classList.remove('show');
+                }, 3000);
             }
         }
         
-        function scaleDeploymentFromInput(namespace, deploymentName, deploymentId) {
-            const inputElement = document.getElementById(`replica-input-${deploymentId}`);
-            if (inputElement) {
-                const replicas = parseInt(inputElement.value);
-                if (isNaN(replicas) || replicas < 0) {
-                    showNotification('Please enter a valid number of replicas (0 or greater)', 'error');
-                    return;
-                }
-                scaleDeployment(namespace, deploymentName, replicas);
-            }
+        // Helper: Check if namespace is system
+        function isSystemNamespace(namespace) {
+            const systemNamespaces = [
+                'kube-system', 
+                'kube-public', 
+                'kube-node-lease', 
+                'kommander', 
+                'kommander-flux',
+                'cert-manager',
+                'ingress-nginx',
+                'metallb-system',
+                'monitoring',
+                'logging',
+                'velero',
+                'ntnx-system'
+            ];
+            return systemNamespaces.includes(namespace);
         }
         
-        function scaleDeploymentQuick(namespace, deploymentName, replicas) {
-            // Update the input field to show the target replicas
-            const deploymentId = deploymentName.replace(/[^a-zA-Z0-9]/g, '-');
-            const inputElement = document.getElementById(`replica-input-${deploymentId}`);
-            if (inputElement) {
-                inputElement.value = replicas;
+        // Helper: Format memory
+        function formatMemory(memory) {
+            if (!memory) return 'N/A';
+            const match = memory.match(/^(\d+)(\w+)$/);
+            if (!match) return memory;
+            
+            const value = parseInt(match[1]);
+            const unit = match[2];
+            
+            if (unit === 'Ki') {
+                return `${(value / 1024 / 1024).toFixed(1)} GB`;
+            } else if (unit === 'Mi') {
+                return `${(value / 1024).toFixed(1)} GB`;
+            } else if (unit === 'Gi') {
+                return `${value} GB`;
             }
             
-            // Call the main scaling function
-            scaleDeployment(namespace, deploymentName, replicas);
-        }
-        
-        async function pollDeploymentStatus(namespace, deploymentName, targetReplicas) {
-            const deploymentId = deploymentName.replace(/[^a-zA-Z0-9]/g, '-');
-            const statusElement = document.getElementById(`replica-status-${deploymentId}`);
-            let pollCount = 0;
-            const maxPolls = 60; // Poll for up to 5 minutes (60 * 5 seconds)
-            
-            const poll = async () => {
-                try {
-                    const response = await fetch(`/api/deployments/${namespace}/${deploymentName}/replicas`);
-                    const result = await response.json();
-                    
-                    if (response.ok) {
-                        const readyReplicas = result.ready_replicas || 0;
-                        const desiredReplicas = result.desired_replicas || 0;
-                        const availableReplicas = result.available_replicas || 0;
-                        
-                        if (statusElement) {
-                            if (readyReplicas === desiredReplicas && desiredReplicas === targetReplicas) {
-                                // All replicas are ready
-                                statusElement.textContent = `✅ ${readyReplicas}/${desiredReplicas} Ready`;
-                                statusElement.className = 'replica-status success';
-                                showNotification(`Successfully scaled ${deploymentName} to ${targetReplicas} replicas`, 'success');
-                                
-                                // Refresh the entire cluster data to show updated pod counts
-                                refreshData();
-                                return; // Stop polling
-                            } else if (desiredReplicas === targetReplicas) {
-                                // Scaling in progress
-                                let statusText = `⏳ ${readyReplicas}/${desiredReplicas} Ready`;
-                                if (availableReplicas > readyReplicas) {
-                                    statusText += ` (${availableReplicas - readyReplicas} Starting)`;
-                                }
-                                statusElement.textContent = statusText;
-                                statusElement.className = 'replica-status loading';
-                            } else {
-                                // Still updating desired count
-                                statusElement.textContent = `🔄 Updating to ${targetReplicas}...`;
-                                statusElement.className = 'replica-status loading';
-                            }
-                        }
-                        
-                        // Continue polling if not all replicas are ready
-                        pollCount++;
-                        if (pollCount < maxPolls) {
-                            setTimeout(poll, 3000); // Poll every 3 seconds
-                        } else {
-                            // Timeout - show final status
-                            if (statusElement) {
-                                statusElement.textContent = `⚠️ ${readyReplicas}/${desiredReplicas} Ready (Timeout)`;
-                                statusElement.className = 'replica-status warning';
-                            }
-                            showNotification(`Scaling ${deploymentName} may still be in progress`, 'warning');
-                        }
-                    } else {
-                        console.error('Failed to poll deployment status:', result.error);
-                        if (statusElement) {
-                            statusElement.textContent = 'Status unknown';
-                            statusElement.className = 'replica-status error';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error polling deployment status:', error);
-                    if (statusElement) {
-                        statusElement.textContent = 'Status unknown';
-                        statusElement.className = 'replica-status error';
-                    }
-                }
-            };
-            
-            // Start polling immediately
-            poll();
-        }
-
-        async function refreshDeploymentData(namespace, deploymentName) {
-            try {
-                const response = await fetch(`/api/deployments/${namespace}/${deploymentName}/replicas`);
-                const result = await response.json();
-                
-                if (response.ok) {
-                    const deploymentId = deploymentName.replace(/[^a-zA-Z0-9]/g, '-');
-                    const inputElement = document.getElementById(`replica-input-${deploymentId}`);
-                    const statusElement = document.getElementById(`replica-status-${deploymentId}`);
-                    
-                    if (inputElement) {
-                        inputElement.value = result.desired_replicas;
-                    }
-                    
-                    if (statusElement) {
-                        const readyReplicas = result.ready_replicas || 0;
-                        const desiredReplicas = result.desired_replicas || 0;
-                        
-                        if (readyReplicas === desiredReplicas) {
-                            statusElement.textContent = `✅ ${readyReplicas}/${desiredReplicas} Ready`;
-                            statusElement.className = 'replica-status success';
-                        } else {
-                            statusElement.textContent = `⏳ ${readyReplicas}/${desiredReplicas} Ready`;
-                            statusElement.className = 'replica-status loading';
-                        }
-                    }
-                    
-                    // Refresh the entire cluster data to update the UI
-                    refreshData();
-                } else {
-                    console.error('Failed to refresh deployment data:', result.error);
-                }
-            } catch (error) {
-                console.error('Error refreshing deployment data:', error);
-            }
-        }
-        
-        function showNotification(message, type = 'info') {
-            // Remove any existing notifications
-            const existingNotification = document.querySelector('.notification');
-            if (existingNotification) {
-                existingNotification.remove();
-            }
-            
-            // Create new notification
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            
-            // Add to page
-            document.body.appendChild(notification);
-            
-            // Show notification
-            setTimeout(() => {
-                notification.classList.add('show');
-            }, 100);
-            
-            // Hide and remove notification after 5 seconds
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }, 5000);
+            return memory;
         }
     </script>
 </body>

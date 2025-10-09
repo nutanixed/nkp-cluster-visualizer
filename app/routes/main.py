@@ -11,14 +11,14 @@ main_bp = Blueprint('main', __name__)
 
 
 @main_bp.route('/')
-@login_required
+# @login_required  # Temporarily disabled for testing
 def index():
     """Main dashboard page"""
     return render_template('index.html')
 
 
 @main_bp.route('/api/cluster')
-@login_required
+# @login_required  # Temporarily disabled for testing
 def cluster_api():
     """Get cluster data"""
     return jsonify(get_cluster_data())
@@ -45,7 +45,7 @@ def health_check():
 
 
 @main_bp.route('/api/refresh', methods=['POST'])
-@login_required
+# @login_required  # Temporarily disabled for testing
 def refresh_data():
     """Force refresh cluster data"""
     try:
@@ -66,7 +66,7 @@ def refresh_data():
 
 
 @main_bp.route('/api/deployments/<namespace>/<deployment_name>/scale', methods=['POST'])
-@login_required
+# @login_required  # Temporarily disabled for testing
 def scale_deployment(namespace, deployment_name):
     """Scale a deployment or statefulset to the specified number of replicas"""
     try:

@@ -135,8 +135,24 @@ def get_cluster_data():
                 'available_replicas': deployment.status.available_replicas or 0,
                 'labels': deployment.metadata.labels or {},
                 'selector': deployment.spec.selector.match_labels or {},
-                'type': 'Deployment'
+                'type': 'Deployment',
+                'pods': []
             }
+            
+            # Match pods to this deployment
+            selector = deployment.spec.selector.match_labels or {}
+            for pod in pods.items:
+                if pod.metadata.namespace == deployment.metadata.namespace and pod.status.phase not in ['Succeeded', 'Failed']:
+                    # Check if pod labels match deployment selector
+                    if selector and pod.metadata.labels:
+                        if all(pod.metadata.labels.get(k) == v for k, v in selector.items()):
+                            dep_info['pods'].append({
+                                'name': pod.metadata.name,
+                                'namespace': pod.metadata.namespace,
+                                'status': pod.status.phase,
+                                'node': pod.spec.node_name
+                            })
+            
             deployment_info.append(dep_info)
         
         # Process statefulsets
@@ -149,8 +165,24 @@ def get_cluster_data():
                 'available_replicas': statefulset.status.ready_replicas or 0,  # StatefulSets don't have available_replicas
                 'labels': statefulset.metadata.labels or {},
                 'selector': statefulset.spec.selector.match_labels or {},
-                'type': 'StatefulSet'
+                'type': 'StatefulSet',
+                'pods': []
             }
+            
+            # Match pods to this statefulset
+            selector = statefulset.spec.selector.match_labels or {}
+            for pod in pods.items:
+                if pod.metadata.namespace == statefulset.metadata.namespace and pod.status.phase not in ['Succeeded', 'Failed']:
+                    # Check if pod labels match statefulset selector
+                    if selector and pod.metadata.labels:
+                        if all(pod.metadata.labels.get(k) == v for k, v in selector.items()):
+                            sts_info['pods'].append({
+                                'name': pod.metadata.name,
+                                'namespace': pod.metadata.namespace,
+                                'status': pod.status.phase,
+                                'node': pod.spec.node_name
+                            })
+            
             deployment_info.append(sts_info)
         
         # Process services
