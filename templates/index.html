@@ -1,0 +1,3069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NKP Cluster Visualizer</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        :root {
+            --brand-primary: #4f46e5;
+            --brand-secondary: #7c3aed;
+            --brand-accent: #0ea5e9;
+            --success: #059669;
+            --warning: #d97706;
+            --error: #dc2626;
+            --info: #0284c7;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-400: #94a3b8;
+            --neutral-500: #64748b;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+            --neutral-900: #0f172a;
+            --white: #ffffff;
+            --bg-primary: var(--neutral-50);
+            --bg-secondary: var(--white);
+            --bg-tertiary: var(--neutral-100);
+            --text-primary: var(--neutral-800);
+            --text-secondary: var(--neutral-600);
+            --text-muted: var(--neutral-500);
+            --border-light: var(--neutral-200);
+            --border-medium: var(--neutral-300);
+            --border-strong: var(--neutral-400);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+        
+        /* ===== HEADER (KEEP SAME) ===== */
+        .header {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            color: white;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
+        }
+        
+        .header-container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .nav-actions-menu {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .nav-icon-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-icon-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-icon-btn svg {
+            flex-shrink: 0;
+        }
+
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nutanix-logo {
+            width: 200px;
+            height: auto;
+            margin-bottom: 0.5rem;
+        }
+
+        .nutanix-logo .st0 {
+            fill: white;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        @media (max-width: 768px) {
+            .nav-btn-label {
+                display: none;
+            }
+            .nav-icon-btn {
+                padding: 0.625rem;
+            }
+        }
+        
+        /* ===== NEW DASHBOARD LAYOUT ===== */
+        .dashboard {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        /* Filter Bar */
+        .filter-bar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-right: 0.5rem;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-medium);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            border-color: var(--brand-primary);
+            background: var(--neutral-50);
+        }
+        
+        .filter-btn.active {
+            background: var(--brand-primary);
+            color: white;
+            border-color: var(--brand-primary);
+        }
+        
+        .filter-input {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-medium);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            min-width: 200px;
+            transition: all 0.2s;
+        }
+        
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            background: white;
+        }
+        
+        .filter-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--brand-primary);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+        
+        .autocomplete-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+        
+        .autocomplete-item:hover {
+            background: var(--neutral-50);
+        }
+        
+        .autocomplete-item:last-child {
+            border-radius: 0 0 6px 6px;
+        }
+        
+        /* Metrics Overview */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .metric-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+        }
+        
+        .metric-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .metric-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .metric-subtitle {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+        
+        /* Main Content Grid - 50/50 Split */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 1000px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Applications Panel */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            overflow: visible;
+        }
+        
+        .panel-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            background: var(--bg-tertiary);
+        }
+        
+        .panel-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .panel-content {
+            padding: 1.5rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        /* Application Card */
+        .app-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+            overflow: visible;
+        }
+        
+        .app-card:hover {
+            border-color: var(--brand-primary);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .app-card.scaling {
+            pointer-events: none;
+        }
+        
+        .app-card .scaling-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            z-index: 10;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .app-card.scaling .scaling-overlay {
+            display: flex;
+        }
+        
+        .scaling-overlay-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-light);
+            border-top-color: var(--brand-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .scaling-overlay-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--brand-primary);
+        }
+        
+        .scaling-overlay-subtext {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .app-card.expanded {
+            border-color: var(--brand-primary);
+            background: var(--neutral-50);
+        }
+        
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .app-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .lb-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #fbbf24;
+            border-radius: 4px;
+            font-size: 0.625rem;
+            font-weight: 700;
+            color: #92400e;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .lb-indicator:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 6px -1px rgba(251, 191, 36, 0.3);
+        }
+        
+        .lb-indicator.pending {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-color: #f87171;
+            color: #991b1b;
+        }
+        
+        .np-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 2px solid #10b981;
+            border-radius: 4px;
+            font-size: 0.625rem;
+            font-weight: 700;
+            color: #065f46;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .np-indicator:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+        }
+        
+        .ci-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            border: 2px solid #818cf8;
+            border-radius: 4px;
+            font-size: 0.625rem;
+            font-weight: 700;
+            color: #3730a3;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .ci-indicator:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 6px -1px rgba(129, 140, 248, 0.3);
+        }
+        
+        .ip-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 4px;
+            font-size: 0.625rem;
+            font-weight: 700;
+            color: #1e40af;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .ip-indicator:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+        }
+        
+        .lb-tooltip {
+            position: fixed;
+            background: var(--bg-primary);
+            border: 2px solid #fbbf24;
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 280px;
+            max-width: 320px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            pointer-events: auto;
+        }
+        
+        .lb-tooltip.pending {
+            border-color: #f87171;
+        }
+        
+        .pod-ip-tooltip {
+            position: fixed;
+            background: var(--bg-primary);
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 280px;
+            max-width: 320px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            pointer-events: auto;
+        }
+        
+        .pod-ip-tooltip-header {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .pod-ip-tooltip-section {
+            margin-bottom: 0.75rem;
+        }
+        
+        .pod-ip-tooltip-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .pod-ip-tooltip-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            margin-bottom: 0.25rem;
+        }
+        
+        .pod-ip-tooltip-value {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+            user-select: all;
+        }
+        
+        .pod-ip-tooltip-ip {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 1px solid #3b82f6;
+            border-radius: 6px;
+            padding: 0.5rem;
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .pod-ip-tooltip-ip-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 0.25rem;
+        }
+        
+        .pod-ip-tooltip-ip-value {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            font-family: 'Monaco', 'Menlo', monospace;
+            user-select: all;
+            position: relative;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .lb-tooltip-header {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .lb-tooltip-section {
+            margin-bottom: 0.75rem;
+        }
+        
+        .lb-tooltip-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .lb-tooltip-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            margin-bottom: 0.25rem;
+        }
+        
+        .lb-tooltip-value {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .lb-tooltip-ip {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #fbbf24;
+            border-radius: 6px;
+            padding: 0.5rem;
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .lb-tooltip-ip.pending {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-color: #f87171;
+        }
+        
+        .lb-tooltip-ip-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 0.25rem;
+        }
+        
+        .lb-tooltip-ip.pending .lb-tooltip-ip-label {
+            color: #991b1b;
+        }
+        
+        .lb-tooltip-ip-value {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #78350f;
+            font-family: 'Monaco', 'Menlo', monospace;
+            user-select: all;
+            position: relative;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .lb-tooltip-ip.pending .lb-tooltip-ip-value {
+            color: #7f1d1d;
+            user-select: none;
+        }
+        
+        .lb-tooltip-ports {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.375rem;
+        }
+        
+        .lb-tooltip-port {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        /* NodePort Tooltip Styles */
+        .np-tooltip {
+            position: fixed;
+            background: var(--bg-primary);
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 280px;
+            max-width: 400px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            pointer-events: auto;
+        }
+        
+        .np-tooltip-header {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .np-tooltip-section {
+            margin-bottom: 0.75rem;
+        }
+        
+        .np-tooltip-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .np-tooltip-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            margin-bottom: 0.25rem;
+        }
+        
+        .np-tooltip-value {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+            user-select: all;
+        }
+        
+        .np-tooltip-url {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 1px solid #10b981;
+            border-radius: 6px;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .np-tooltip-url:last-child {
+            margin-bottom: 0;
+        }
+        
+        .np-tooltip-url-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 0.25rem;
+        }
+        
+        .np-tooltip-url-value {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #064e3b;
+            font-family: 'Monaco', 'Menlo', monospace;
+            user-select: all;
+            word-break: break-all;
+        }
+        
+        .np-tooltip-url-value a {
+            color: #064e3b;
+            text-decoration: none;
+        }
+        
+        .np-tooltip-url-value a:hover {
+            text-decoration: underline;
+        }
+        
+        .np-tooltip-ports {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.375rem;
+        }
+        
+        .np-tooltip-port {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .ci-tooltip {
+            position: fixed;
+            background: var(--bg-primary);
+            border: 2px solid #818cf8;
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 280px;
+            max-width: 400px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            pointer-events: auto;
+        }
+        
+        .ci-tooltip-header {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .ci-tooltip-section {
+            margin-bottom: 0.75rem;
+        }
+        
+        .ci-tooltip-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .ci-tooltip-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            margin-bottom: 0.25rem;
+        }
+        
+        .ci-tooltip-value {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+            user-select: all;
+        }
+        
+        .ci-tooltip-ip {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            border: 1px solid #818cf8;
+            border-radius: 6px;
+            padding: 0.5rem;
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .ci-tooltip-ip-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: #3730a3;
+            margin-bottom: 0.25rem;
+        }
+        
+        .ci-tooltip-ip-value {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #312e81;
+            font-family: 'Monaco', 'Menlo', monospace;
+            user-select: all;
+        }
+        
+        .ci-tooltip-ports {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.375rem;
+        }
+        
+        .ci-tooltip-port {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .app-type-badge {
+            padding: 0.25rem 0.625rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge-deployment {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-statefulset {
+            background: #fce7f3;
+            color: #9f1239;
+        }
+        
+        .badge-system {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .app-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        /* Replica Scaling */
+        .replica-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-light);
+        }
+        
+        .replica-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .replica-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--brand-primary);
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .scale-btn {
+            width: 36px;
+            height: 36px;
+            border: 2px solid var(--brand-primary);
+            background: var(--bg-secondary);
+            color: var(--brand-primary);
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .scale-btn:hover:not(:disabled) {
+            background: var(--brand-primary);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .scale-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .scale-btn.loading {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        
+        .replica-controls.scaling {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .replica-controls .scaling-indicator {
+            display: none;
+            font-size: 0.75rem;
+            color: var(--brand-primary);
+            font-weight: 600;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .replica-controls.scaling .scaling-indicator {
+            display: flex;
+        }
+        
+        .scaling-indicator-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--border-light);
+            border-top-color: var(--brand-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        /* Pod List */
+        .pod-list {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .pod-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .pod-name {
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: var(--text-primary);
+            font-weight: 500;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .pod-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .pod-ip {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: 600;
+            background: var(--bg-secondary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-medium);
+        }
+        
+        .pod-node {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+        
+        .status-dot.pending {
+            background: var(--warning);
+        }
+        
+        .status-dot.failed {
+            background: var(--error);
+        }
+        
+        /* Node Topology */
+        .topology-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .node-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+        
+        .node-card.control-plane {
+            border-color: var(--brand-primary);
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(79, 70, 229, 0.02) 100%);
+        }
+        
+        .node-card.worker {
+            border-color: var(--brand-secondary);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(124, 58, 237, 0.02) 100%);
+        }
+        
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .node-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .node-type {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .node-type.control-plane {
+            background: var(--brand-primary);
+            color: white;
+        }
+        
+        .node-type.worker {
+            background: var(--brand-secondary);
+            color: white;
+        }
+        
+        .node-specs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .spec-item {
+            text-align: center;
+        }
+        
+        .spec-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+        
+        .spec-value {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        @media (max-width: 768px) {
+            .node-specs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .node-pods {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .pod-badge {
+            padding: 0.375rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        /* Load Balancer Card */
+        .lb-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+        
+        .lb-card:hover {
+            border-color: var(--warning);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .lb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .lb-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .lb-type-badge {
+            padding: 0.25rem 0.625rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-loadbalancer {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-clusterip {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-nodeport {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        
+        .lb-stats {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .lb-stat-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .lb-stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8125rem;
+        }
+        
+        .lb-ip {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .lb-ip-label {
+            font-size: 0.75rem;
+            color: #92400e;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .lb-ip-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #78350f;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .lb-ports {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .port-badge {
+            padding: 0.375rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .port-badge .port-protocol {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        
+        /* Confirmation Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .modal-body {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: var(--brand-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-medium);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--neutral-200);
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: -500px;
+            background: var(--success);
+            color: white;
+            padding: 1.25rem 1.75rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            transition: right 0.3s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 320px;
+            max-width: 500px;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .notification.show {
+            right: 2rem;
+        }
+        
+        .notification.error {
+            background: var(--error);
+        }
+        
+        .notification.info {
+            background: var(--info);
+        }
+        
+        .notification.loading {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 10px 40px rgba(79, 70, 229, 0.4);
+            }
+            50% {
+                box-shadow: 0 10px 50px rgba(79, 70, 229, 0.6);
+            }
+        }
+        
+        .notification-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+        
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-light);
+            border-top-color: var(--brand-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        /* Scrollbar Styling */
+        .panel-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .panel-content::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+        
+        .panel-content::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 4px;
+        }
+        
+        .panel-content::-webkit-scrollbar-thumb:hover {
+            background: var(--border-strong);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header (Keep Same) -->
+        <div class="header">
+            <div class="header-container">
+                <div class="nav-actions-menu">
+                    <a href="/resources" class="nav-icon-btn" title="View All Resources">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
+                        </svg>
+                        <span class="nav-btn-label">Resources</span>
+                    </a>
+                    <button class="nav-icon-btn" onclick="refreshData()" title="Refresh Data">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                        </svg>
+                        <span class="nav-btn-label">Refresh</span>
+                    </button>
+                    <a href="/logout" class="nav-icon-btn" title="Logout">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span class="nav-btn-label">Logout</span>
+                    </a>
+                </div>
+                
+                <div class="header-content">
+                    <svg class="nutanix-logo" viewBox="0 0 1064.95 134.32" xmlns="http://www.w3.org/2000/svg">
+                        <style type="text/css">.st0{fill:#131313;}</style>
+                        <path class="st0" d="M476.14,28.26h-53.43c-0.05,0-0.08,0.04-0.08,0.08v103.97c0,1.1-0.9,2-2,2h-25.81c-1.1,0-2-0.9-2-2V28.34c0-0.05-0.04-0.08-0.08-0.08h-53.28c-1.1,0-2-0.9-2-2V2.98c0-1.1,0.9-2,2-2h136.68c1.1,0,2,0.9,2,2v23.28C478.14,27.36,477.25,28.26,476.14,28.26z M855.74,0.98h-25.81c-1.1,0-2,0.9-2,2v129.34c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2V2.98C857.74,1.87,856.84,0.98,855.74,0.98z M1064.31,131.08c0.58,0.5,0.79,1.32,0.52,2.04s-0.96,1.2-1.73,1.2h-39.75c-0.44,0-0.87-0.16-1.21-0.45l-43.67-37.79c-0.4-0.35-0.64-0.86-0.64-1.39c0-0.54,0.23-1.04,0.64-1.39l19.87-17.2c0.69-0.6,1.72-0.6,2.41,0L1064.31,131.08z M998.36,59.2c0.35,0.3,0.78,0.45,1.21,0.45c0.43,0,0.86-0.15,1.21-0.45l63.54-54.99c0.58-0.5,0.79-1.32,0.52-2.04c-0.27-0.72-0.96-1.2-1.73-1.2h-39.75c-0.44,0-0.87,0.16-1.21,0.45l-43.67,37.79c-0.4,0.35-0.64,0.86-0.64,1.39c0,0.54,0.23,1.04,0.64,1.39L998.36,59.2z M990.04,67.65c0-0.54-0.23-1.04-0.64-1.39L914.49,1.43c-0.33-0.29-0.76-0.45-1.21-0.45h-39.75c-0.77,0-1.46,0.48-1.73,1.2s-0.06,1.53,0.52,2.04l73.23,63.37c0.04,0.03,0.04,0.09,0,0.13l-73.23,63.37c-0.58,0.5-0.79,1.32-0.52,2.04s0.96,1.2,1.73,1.2h39.75c0.44,0,0.87-0.16,1.21-0.45l74.91-64.83C989.81,68.69,990.04,68.18,990.04,67.65z M29.81,44.32c0-0.07,0.08-0.11,0.13-0.07c3.92,3.51,93.13,83.39,97.43,86.77c3.8,2.98,8.19,4.83,13.91,3.99c7.4-0.9,15.54-7.22,15.54-17.86V2.98c0-1.1-0.9-2-2-2h-25.81c-1.1,0-2,0.9-2,2v87.91c0,0.07-0.08,0.11-0.13,0.07c-3.92-3.51-93.13-83.39-97.43-86.77c-3.8-2.98-8.19-4.83-13.91-3.99C8.14,1.1,0,7.43,0,18.06v114.25c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2L29.81,44.32z M684.96,44.32c0-0.07,0.08-0.11,0.13-0.07c3.92,3.51,93.13,83.39,97.43,86.77c3.8,2.98,8.19,4.83,13.91,3.99c7.4-0.9,15.54-7.22,15.54-17.86V2.98c0-1.1-0.9-2-2-2h-25.81c-1.1,0-2,0.9-2,2v87.91c0,0.07-0.08,0.11-0.13,0.07c-3.92-3.51-93.13-83.39-97.43-86.77c-3.8-2.98-8.19-4.83-13.91-3.99c-7.4,0.9-15.54,7.23-15.54,17.86v114.25c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2V44.32z M255.72,136.96c16.08-0.04,34-0.95,45-7.44c14.64-8.64,21.76-20.64,21.76-36.67l0.01-89.87c0-1.1-0.9-2-2-2h-26.06c-1.1,0-2,0.9-2,2l-0.01,88.12c-0.25,17.54-21.98,17.72-37.66,17.72h-14.25c-15.68,0-37.4-0.17-37.66-17.72l-0.01-88.12c0-1.1-0.9-2-2-2h-26.06c-1.1,0-2,0.9-2,2l0.01,89.87c0,16.03,7.12,28.03,21.76,36.67c11,6.49,28.92,7.41,45,7.44H255.72z M642.86,131.31c0.41,0.58,0.46,1.34,0.14,1.98c-0.32,0.63-0.97,1.03-1.68,1.03h-31.87c-0.64,0-1.24-0.31-1.61-0.84l-18.59-26.58c-0.02-0.02-0.04-0.04-0.07-0.04h-95.56c-0.03,0-0.05,0.01-0.07,0.04l-18.66,26.61c-0.35,0.51-0.93,0.81-1.54,0.81h-31.87c-0.71,0-1.36-0.4-1.68-1.03s-0.27-1.4,0.14-1.98c0,0,81.05-115.69,86.05-122.6S536.02,0,541.44,0c5.97,0,10.58,2.23,15.02,8.18L642.86,131.31z M569.84,79.45L541.48,39.3c-0.03-0.05-0.1-0.05-0.14,0l-28.37,40.15c-0.04,0.06,0,0.13,0.07,0.13h56.73C569.84,79.58,569.88,79.5,569.84,79.45z"/>
+                    </svg>
+                    <h1>NKP Cluster Visualizer</h1>
+                    <p class="subtitle">Real-time Kubernetes Platform Architecture & Workload Distribution</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- New Dashboard -->
+        <div class="dashboard">
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <span class="filter-label">Workload Type:</span>
+                    <button class="filter-btn active" data-filter="all" onclick="setFilter('type', 'all')">All</button>
+                    <button class="filter-btn" data-filter="deployment" onclick="setFilter('type', 'deployment')">Deployments</button>
+                    <button class="filter-btn" data-filter="statefulset" onclick="setFilter('type', 'statefulset')">StatefulSets</button>
+                    <button class="filter-btn" data-filter="system" onclick="setFilter('type', 'system')">System Pods</button>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Pod Type:</span>
+                    <button class="filter-btn active" data-filter-ns="all" onclick="setFilter('namespace', 'all')">All</button>
+                    <button class="filter-btn" data-filter-ns="app" onclick="setFilter('namespace', 'app')">Application</button>
+                    <button class="filter-btn" data-filter-ns="system" onclick="setFilter('namespace', 'system')">System</button>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Search:</span>
+                    <div style="position: relative;">
+                        <input type="text" class="filter-input" id="search-namespace" placeholder="Filter by namespace..." oninput="handleAutocomplete('namespace', this.value)" onfocus="handleAutocompleteFocus('namespace')" onblur="hideAutocomplete('namespace')" autocomplete="off">
+                        <div class="autocomplete-dropdown" id="autocomplete-namespace"></div>
+                    </div>
+                    <div style="position: relative;">
+                        <input type="text" class="filter-input" id="search-app" placeholder="Filter by application..." oninput="handleAutocomplete('app', this.value)" onfocus="handleAutocompleteFocus('app')" onblur="hideAutocomplete('app')" autocomplete="off">
+                        <div class="autocomplete-dropdown" id="autocomplete-app"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Metrics Overview -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Total Nodes</div>
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white;">N</div>
+                    </div>
+                    <div class="metric-value" id="metric-nodes">0</div>
+                    <div class="metric-subtitle" id="metric-nodes-detail">Loading...</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Deployments</div>
+                        <div class="metric-icon" style="background: #dbeafe; color: #1e40af;">D</div>
+                    </div>
+                    <div class="metric-value" id="metric-deployments">0</div>
+                    <div class="metric-subtitle" id="metric-deployments-detail">Loading...</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Total Pods</div>
+                        <div class="metric-icon" style="background: #d1fae5; color: #065f46;">P</div>
+                    </div>
+                    <div class="metric-value" id="metric-pods">0</div>
+                    <div class="metric-subtitle" id="metric-pods-detail">Loading...</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Load Balancers</div>
+                        <div class="metric-icon" style="background: #fef3c7; color: #92400e;">LB</div>
+                    </div>
+                    <div class="metric-value" id="metric-loadbalancers">0</div>
+                    <div class="metric-subtitle" id="metric-loadbalancers-detail">Loading...</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Cluster Health</div>
+                        <div class="metric-icon" style="background: #d1fae5; color: #065f46;">✓</div>
+                    </div>
+                    <div class="metric-value" id="metric-health">—</div>
+                    <div class="metric-subtitle" id="metric-health-detail">Loading...</div>
+                </div>
+            </div>
+            
+            <!-- Main Content Grid - 50/50 Split -->
+            <div class="content-grid">
+                <!-- Applications Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Applications & Workloads</div>
+                    </div>
+                    <div class="panel-content" id="applications-panel">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <div>Loading applications...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Node Topology Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Node Topology</div>
+                    </div>
+                    <div class="panel-content" id="topology-panel">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <div>Loading nodes...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div class="modal" id="scale-modal">
+        <div class="modal-content">
+            <div class="modal-title">Confirm Replica Scaling</div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmScale()">Confirm</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        let clusterData = null;
+        let currentFilters = {
+            type: 'all',
+            namespace: 'all',
+            searchNamespace: '',
+            searchApp: ''
+        };
+        let scaleAction = null;
+        
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadClusterData();
+            // Auto-refresh every 30 seconds
+            setInterval(loadClusterData, 30000);
+        });
+        
+        // Load cluster data
+        async function loadClusterData() {
+            try {
+                const response = await fetch('/api/cluster');
+                const data = await response.json();
+                
+                // Check for authentication error
+                if (data.error) {
+                    console.error('API Error:', data.error);
+                    if (data.error === 'Authentication required') {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    showNotification(`Failed to load cluster data: ${data.error}`, 'error');
+                    return;
+                }
+                
+                clusterData = data;
+                renderDashboard();
+            } catch (error) {
+                console.error('Error loading cluster data:', error);
+                showNotification('Failed to load cluster data', 'error');
+            }
+        }
+        
+        // Refresh data
+        function refreshData() {
+            showNotification('Refreshing data...', 'info');
+            loadClusterData();
+        }
+        
+        // Render entire dashboard
+        function renderDashboard() {
+            if (!clusterData) return;
+            
+            updateAutocompleteLists();
+            renderMetrics();
+            renderApplications();
+            renderTopology();
+        }
+        
+        // Update autocomplete lists
+        function updateAutocompleteLists() {
+            if (!clusterData || !clusterData.deployments) return;
+            
+            // Get unique namespaces and app names
+            const namespaces = new Set();
+            const appNames = new Set();
+            
+            clusterData.deployments.forEach(workload => {
+                namespaces.add(workload.namespace);
+                appNames.add(workload.name);
+            });
+            
+            // Store for autocomplete
+            window.autocompleteData = {
+                namespaces: Array.from(namespaces).sort(),
+                apps: Array.from(appNames).sort()
+            };
+        }
+        
+        // Handle autocomplete input
+        function handleAutocomplete(type, value) {
+            setSearchFilter(type, value);
+            
+            if (!value || !window.autocompleteData) {
+                hideAutocomplete(type);
+                return;
+            }
+            
+            const data = type === 'namespace' ? window.autocompleteData.namespaces : window.autocompleteData.apps;
+            const matches = data.filter(item => item.toLowerCase().includes(value.toLowerCase()));
+            
+            if (matches.length === 0) {
+                hideAutocomplete(type);
+                return;
+            }
+            
+            showAutocomplete(type, matches, value);
+        }
+        
+        // Handle autocomplete focus
+        function handleAutocompleteFocus(type) {
+            const input = type === 'namespace' ? document.getElementById('search-namespace') : document.getElementById('search-app');
+            if (input.value) {
+                handleAutocomplete(type, input.value);
+            }
+        }
+        
+        // Show autocomplete dropdown
+        function showAutocomplete(type, matches, currentValue) {
+            const dropdown = document.getElementById(`autocomplete-${type}`);
+            dropdown.innerHTML = '';
+            
+            // Limit to 8 suggestions
+            matches.slice(0, 8).forEach(match => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.textContent = match;
+                item.onmousedown = (e) => {
+                    e.preventDefault(); // Prevent blur event
+                    selectAutocomplete(type, match);
+                };
+                dropdown.appendChild(item);
+            });
+            
+            dropdown.classList.add('show');
+        }
+        
+        // Hide autocomplete dropdown
+        function hideAutocomplete(type) {
+            setTimeout(() => {
+                const dropdown = document.getElementById(`autocomplete-${type}`);
+                dropdown.classList.remove('show');
+            }, 200);
+        }
+        
+        // Select autocomplete item
+        function selectAutocomplete(type, value) {
+            const input = type === 'namespace' ? document.getElementById('search-namespace') : document.getElementById('search-app');
+            input.value = value;
+            setSearchFilter(type, value);
+            hideAutocomplete(type);
+        }
+        
+        // Render metrics
+        function renderMetrics() {
+            const totalNodes = (clusterData.master_nodes?.length || 0) + 
+                              Object.values(clusterData.worker_pools || {}).flat().length;
+            const controlPlaneNodes = clusterData.master_nodes?.length || 0;
+            const workerNodes = Object.values(clusterData.worker_pools || {}).flat().length;
+            
+            document.getElementById('metric-nodes').textContent = totalNodes;
+            document.getElementById('metric-nodes-detail').textContent = 
+                `${controlPlaneNodes} Control Plane, ${workerNodes} Workers`;
+            
+            // Count deployments and statefulsets from the deployments array (which contains both)
+            const deployments = (clusterData.deployments || []).filter(d => d.type === 'Deployment').length;
+            const statefulsets = (clusterData.deployments || []).filter(d => d.type === 'StatefulSet').length;
+            
+            document.getElementById('metric-deployments').textContent = deployments + statefulsets;
+            document.getElementById('metric-deployments-detail').textContent = 
+                `${deployments} Deployments, ${statefulsets} StatefulSets`;
+            
+            let totalPods = 0;
+            let runningPods = 0;
+            
+            // Count pods from all nodes
+            if (clusterData.master_nodes) {
+                clusterData.master_nodes.forEach(node => {
+                    const pods = node.pods || [];
+                    totalPods += pods.length;
+                    runningPods += pods.filter(p => p.status === 'Running').length;
+                });
+            }
+            
+            if (clusterData.worker_pools) {
+                Object.values(clusterData.worker_pools).forEach(nodes => {
+                    nodes.forEach(node => {
+                        const pods = node.pods || [];
+                        totalPods += pods.length;
+                        runningPods += pods.filter(p => p.status === 'Running').length;
+                    });
+                });
+            }
+            
+            document.getElementById('metric-pods').textContent = totalPods;
+            document.getElementById('metric-pods-detail').textContent = 
+                `${runningPods} Running, ${totalPods - runningPods} Other`;
+            
+            const readyNodes = totalNodes; // Simplified - could check actual status
+            const healthPercentage = totalNodes > 0 ? Math.round((readyNodes / totalNodes) * 100) : 0;
+            
+            document.getElementById('metric-health').textContent = `${healthPercentage}%`;
+            document.getElementById('metric-health-detail').textContent = 
+                `${readyNodes} of ${totalNodes} nodes ready`;
+            
+            // Count load balancers (only external LoadBalancer type)
+            const services = clusterData.services || [];
+            const loadBalancers = services.filter(s => s.type === 'LoadBalancer').length;
+            const loadBalancersWithIP = services.filter(s => s.type === 'LoadBalancer' && s.load_balancer_ip).length;
+            const loadBalancersPending = loadBalancers - loadBalancersWithIP;
+            
+            document.getElementById('metric-loadbalancers').textContent = loadBalancers;
+            document.getElementById('metric-loadbalancers-detail').textContent = 
+                loadBalancersPending > 0 ? `${loadBalancersWithIP} Active, ${loadBalancersPending} Pending` : `${loadBalancersWithIP} Active`;
+        }
+        
+        // Helper function to find external services (LoadBalancer and NodePort) for an application
+        function findLoadBalancersForApp(appName, appNamespace, appSelector) {
+            const services = clusterData.services || [];
+            const externalServices = [];
+            
+            services.forEach(svc => {
+                // Only consider LoadBalancer and NodePort type services in the same namespace
+                if ((svc.type !== 'LoadBalancer' && svc.type !== 'NodePort') || svc.namespace !== appNamespace) {
+                    return;
+                }
+                
+                // Check if service selector matches application selector
+                const svcSelector = svc.selector || {};
+                const svcSelectorKeys = Object.keys(svcSelector);
+                
+                if (svcSelectorKeys.length === 0) {
+                    return;
+                }
+                
+                // Check if all service selector labels match the application selector
+                const matches = svcSelectorKeys.every(key => {
+                    return appSelector[key] === svcSelector[key];
+                });
+                
+                if (matches) {
+                    externalServices.push(svc);
+                }
+            });
+            
+            return externalServices;
+        }
+        
+        // Helper: Find ClusterIP services for an application
+        function findClusterIpServicesForApp(appName, appNamespace, appSelector) {
+            const services = clusterData.services || [];
+            const clusterIpServices = [];
+            
+            services.forEach(svc => {
+                // Only consider ClusterIP type services in the same namespace
+                // ClusterIP is the default type, so check for it explicitly or if type is missing
+                if (svc.namespace !== appNamespace) {
+                    return;
+                }
+                
+                // Skip if it's a LoadBalancer or NodePort (those are handled separately)
+                if (svc.type === 'LoadBalancer' || svc.type === 'NodePort') {
+                    return;
+                }
+                
+                // Skip if it's a headless service (clusterIP: None)
+                if (!svc.cluster_ip || svc.cluster_ip === 'None') {
+                    return;
+                }
+                
+                // Check if service selector matches application selector
+                const svcSelector = svc.selector || {};
+                const svcSelectorKeys = Object.keys(svcSelector);
+                
+                if (svcSelectorKeys.length === 0) {
+                    return;
+                }
+                
+                // Check if all service selector labels match the application selector
+                const matches = svcSelectorKeys.every(key => {
+                    return appSelector[key] === svcSelector[key];
+                });
+                
+                if (matches) {
+                    clusterIpServices.push(svc);
+                }
+            });
+            
+            return clusterIpServices;
+        }
+        
+        // Render applications
+        function renderApplications() {
+            const panel = document.getElementById('applications-panel');
+            
+            let applications = [];
+            
+            // Process all workloads from deployments array (contains both Deployments and StatefulSets)
+            if (clusterData.deployments) {
+                clusterData.deployments.forEach(workload => {
+                    applications.push({
+                        name: workload.name,
+                        namespace: workload.namespace,
+                        type: workload.type === 'StatefulSet' ? 'statefulset' : 'deployment',
+                        replicas: workload.replicas,
+                        ready_replicas: workload.ready_replicas,
+                        pods: workload.pods || [],
+                        selector: workload.selector || {}
+                    });
+                });
+            }
+            
+            // Filter applications
+            applications = applications.filter(app => {
+                // Handle search filters first (they override button filters)
+                if (currentFilters.searchNamespace) {
+                    if (!app.namespace.toLowerCase().includes(currentFilters.searchNamespace.toLowerCase())) {
+                        return false;
+                    }
+                }
+                
+                if (currentFilters.searchApp) {
+                    if (!app.name.toLowerCase().includes(currentFilters.searchApp.toLowerCase())) {
+                        return false;
+                    }
+                }
+                
+                // If search filters are active, skip button filters
+                if (currentFilters.searchNamespace || currentFilters.searchApp) {
+                    return true;
+                }
+                
+                // Handle type filter
+                if (currentFilters.type === 'deployment' && app.type !== 'deployment') {
+                    return false;
+                }
+                if (currentFilters.type === 'statefulset' && app.type !== 'statefulset') {
+                    return false;
+                }
+                if (currentFilters.type === 'system') {
+                    // System filter shows all workloads in system namespaces
+                    if (!isSystemNamespace(app.namespace)) {
+                        return false;
+                    }
+                }
+                
+                // Handle namespace filter (only if type filter is not 'system')
+                if (currentFilters.type !== 'system') {
+                    if (currentFilters.namespace === 'app' && isSystemNamespace(app.namespace)) {
+                        return false;
+                    }
+                    
+                    if (currentFilters.namespace === 'system' && !isSystemNamespace(app.namespace)) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+            
+            if (applications.length === 0) {
+                panel.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">—</div>
+                        <div>No applications found</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            applications.forEach(app => {
+                const badgeClass = app.type === 'deployment' ? 'badge-deployment' : 'badge-statefulset';
+                const badgeText = app.type === 'deployment' ? 'Deployment' : 'StatefulSet';
+                
+                // Find load balancers for this application
+                const loadBalancers = findLoadBalancersForApp(app.name, app.namespace, app.selector);
+                
+                // Find ClusterIP services for this application (only if no external services exist)
+                const clusterIpServices = loadBalancers.length === 0 
+                    ? findClusterIpServicesForApp(app.name, app.namespace, app.selector)
+                    : [];
+                
+                html += `
+                    <div class="app-card" id="app-${app.namespace}-${app.name}">
+                        <div class="scaling-overlay">
+                            <div class="scaling-overlay-spinner"></div>
+                            <div class="scaling-overlay-text">Scaling in progress...</div>
+                            <div class="scaling-overlay-subtext">Please wait while replicas are being adjusted</div>
+                        </div>
+                        <div class="app-header">
+                            <div class="app-name">
+                                ${app.name}
+                                <span class="app-type-badge ${badgeClass}">${badgeText}</span>
+                `;
+                
+                // Add indicators for each external service (LoadBalancer or NodePort)
+                loadBalancers.forEach(svc => {
+                    if (svc.type === 'LoadBalancer') {
+                        const isPending = !svc.load_balancer_ip;
+                        const pendingClass = isPending ? 'pending' : '';
+                        const lbData = JSON.stringify(svc).replace(/"/g, '&quot;');
+                        
+                        html += `
+                                    <span class="lb-indicator ${pendingClass}" 
+                                          data-lb='${lbData}'
+                                          onmouseenter="showLbTooltip(this)"
+                                          onmouseleave="scheduleHideLbTooltip()">
+                                        LB
+                                    </span>
+                        `;
+                    } else if (svc.type === 'NodePort') {
+                        const npData = JSON.stringify(svc).replace(/"/g, '&quot;');
+                        
+                        html += `
+                                    <span class="np-indicator" 
+                                          data-np='${npData}'
+                                          onmouseenter="showNpTooltip(this)"
+                                          onmouseleave="scheduleHideNpTooltip()">
+                                        NP
+                                    </span>
+                        `;
+                    }
+                });
+                
+                // Add indicators for each ClusterIP service (internal only)
+                // Only shown if there are no LoadBalancer or NodePort services
+                clusterIpServices.forEach(svc => {
+                    const ciData = JSON.stringify(svc).replace(/"/g, '&quot;');
+                    
+                    html += `
+                                <span class="ci-indicator" 
+                                      data-ci='${ciData}'
+                                      onmouseenter="showCiTooltip(this)"
+                                      onmouseleave="scheduleHideCiTooltip()">
+                                    CI
+                                </span>
+                    `;
+                });
+                
+                html += `
+                            </div>
+                        </div>
+                        <div class="app-stats">
+                            <div class="stat-item">
+                                <span>Namespace:</span>
+                                <span class="stat-value">${app.namespace}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span>Pods:</span>
+                                <span class="stat-value">${app.ready_replicas}/${app.replicas}</span>
+                            </div>
+                        </div>
+                        <div class="replica-controls" id="replica-controls-${app.namespace}-${app.name}">
+                            <span class="replica-label">Replicas:</span>
+                            <button class="scale-btn" onclick="scaleReplicas('${app.namespace}', '${app.name}', '${app.type}', ${app.replicas - 1})" ${app.replicas <= 0 ? 'disabled' : ''}>−</button>
+                            <span class="replica-value">${app.replicas}</span>
+                            <button class="scale-btn" onclick="scaleReplicas('${app.namespace}', '${app.name}', '${app.type}', ${app.replicas + 1})">+</button>
+                            <div class="scaling-indicator">
+                                <div class="scaling-indicator-spinner"></div>
+                                <span>Scaling...</span>
+                            </div>
+                        </div>
+                        <div class="pod-list">
+                `;
+                
+                app.pods.forEach(pod => {
+                    const nodeName = pod.node || 'Unknown';
+                    const podIP = pod.ip || 'N/A';
+                    const statusClass = pod.status === 'Running' ? '' : 
+                                       pod.status === 'Pending' ? 'pending' : 'failed';
+                    const podData = JSON.stringify({
+                        name: pod.name,
+                        ip: podIP,
+                        status: pod.status,
+                        node: nodeName
+                    }).replace(/"/g, '&quot;');
+                    
+                    html += `
+                        <div class="pod-item">
+                            <span class="pod-name">${pod.name}</span>
+                            <div class="pod-info">
+                                <span class="ip-indicator" 
+                                      data-pod='${podData}'
+                                      onmouseenter="showPodIpTooltip(this)"
+                                      onmouseleave="scheduleHidePodIpTooltip()">
+                                    IP
+                                </span>
+                                <span class="pod-node">
+                                    <span class="status-dot ${statusClass}"></span>
+                                    ${nodeName}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            panel.innerHTML = html;
+        }
+        
+        // Helper: Check if pod should be displayed based on current filters
+        function shouldDisplayPod(pod) {
+            // Search filters take priority
+            if (currentFilters.searchNamespace || currentFilters.searchApp) {
+                // Filter by namespace search
+                if (currentFilters.searchNamespace && 
+                    !pod.namespace.toLowerCase().includes(currentFilters.searchNamespace.toLowerCase())) {
+                    return false;
+                }
+                
+                // Filter by app name search
+                if (currentFilters.searchApp) {
+                    // Check if pod belongs to a workload matching the search
+                    const matchingWorkload = clusterData.deployments?.find(workload => 
+                        workload.name.toLowerCase().includes(currentFilters.searchApp.toLowerCase()) &&
+                        workload.pods?.some(p => p.name === pod.name)
+                    );
+                    if (!matchingWorkload) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            }
+            
+            // Button filters
+            // Handle type filter
+            if (currentFilters.type === 'deployment' || currentFilters.type === 'statefulset') {
+                // Find if this pod belongs to a deployment or statefulset of the filtered type
+                const workloadType = currentFilters.type === 'deployment' ? 'Deployment' : 'StatefulSet';
+                const matchingWorkload = clusterData.deployments?.find(workload => 
+                    workload.type === workloadType && 
+                    workload.pods?.some(p => p.name === pod.name)
+                );
+                if (!matchingWorkload) {
+                    return false;
+                }
+            } else if (currentFilters.type === 'system') {
+                // Show only system namespace pods
+                if (!isSystemNamespace(pod.namespace)) {
+                    return false;
+                }
+            }
+            
+            // Handle namespace filter (only if type filter is not 'system')
+            if (currentFilters.type !== 'system') {
+                if (currentFilters.namespace === 'app' && isSystemNamespace(pod.namespace)) {
+                    return false;
+                }
+                
+                if (currentFilters.namespace === 'system' && !isSystemNamespace(pod.namespace)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // Render topology
+        function renderTopology() {
+            const panel = document.getElementById('topology-panel');
+            let html = '<div class="topology-container">';
+            
+            // Control Plane Nodes
+            if (clusterData.master_nodes && clusterData.master_nodes.length > 0) {
+                clusterData.master_nodes.forEach(node => {
+                    const allPods = node.pods || [];
+                    const filteredPods = allPods.filter(pod => shouldDisplayPod(pod));
+                    const runningPods = filteredPods.filter(p => p.status === 'Running').length;
+                    
+                    html += `
+                        <div class="node-card control-plane">
+                            <div class="node-header">
+                                <div class="node-name">${node.name}</div>
+                                <div class="node-type control-plane">Control Plane</div>
+                            </div>
+                            <div class="node-specs">
+                                <div class="spec-item">
+                                    <div class="spec-label">CPU</div>
+                                    <div class="spec-value">${node.cpu_capacity || 'N/A'}</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Memory</div>
+                                    <div class="spec-value">${formatMemory(node.memory_capacity)}</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">IP Address</div>
+                                    <div class="spec-value">${node.internal_ip || node.external_ip || 'N/A'}</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Pods</div>
+                                    <div class="spec-value">${runningPods}/${filteredPods.length}</div>
+                                </div>
+                            </div>
+                            <div class="node-pods">
+                    `;
+                    
+                    if (filteredPods.length === 0) {
+                        html += `<div style="color: var(--text-muted); font-size: 0.75rem; font-style: italic;">No pods match current filters</div>`;
+                    } else {
+                        filteredPods.forEach(pod => {
+                            html += `<div class="pod-badge" title="${pod.namespace}/${pod.name}">${pod.name}</div>`;
+                        });
+                    }
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Worker Nodes
+            if (clusterData.worker_pools) {
+                Object.entries(clusterData.worker_pools).forEach(([poolName, nodes]) => {
+                    nodes.forEach(node => {
+                        const allPods = node.pods || [];
+                        const filteredPods = allPods.filter(pod => shouldDisplayPod(pod));
+                        const runningPods = filteredPods.filter(p => p.status === 'Running').length;
+                        
+                        html += `
+                            <div class="node-card worker">
+                                <div class="node-header">
+                                    <div class="node-name">${node.name}</div>
+                                    <div class="node-type worker">Worker</div>
+                                </div>
+                                <div class="node-specs">
+                                    <div class="spec-item">
+                                        <div class="spec-label">CPU</div>
+                                        <div class="spec-value">${node.cpu_capacity || 'N/A'}</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-label">Memory</div>
+                                        <div class="spec-value">${formatMemory(node.memory_capacity)}</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-label">IP Address</div>
+                                        <div class="spec-value">${node.internal_ip || node.external_ip || 'N/A'}</div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-label">Pods</div>
+                                        <div class="spec-value">${runningPods}/${filteredPods.length}</div>
+                                    </div>
+                                </div>
+                                <div class="node-pods">
+                        `;
+                        
+                        if (filteredPods.length === 0) {
+                            html += `<div style="color: var(--text-muted); font-size: 0.75rem; font-style: italic;">No pods match current filters</div>`;
+                        } else {
+                            filteredPods.forEach(pod => {
+                                html += `<div class="pod-badge" title="${pod.namespace}/${pod.name}">${pod.name}</div>`;
+                            });
+                        }
+                        
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+            }
+            
+            html += '</div>';
+            panel.innerHTML = html;
+        }
+        
+        // Set filter
+        function setFilter(type, value) {
+            currentFilters[type] = value;
+            
+            // Clear search inputs when using button filters
+            if (type === 'type' || type === 'namespace') {
+                currentFilters.searchNamespace = '';
+                currentFilters.searchApp = '';
+                document.getElementById('search-namespace').value = '';
+                document.getElementById('search-app').value = '';
+            }
+            
+            // Update button states
+            if (type === 'type') {
+                document.querySelectorAll('[data-filter]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.filter === value);
+                });
+            } else if (type === 'namespace') {
+                document.querySelectorAll('[data-filter-ns]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.filterNs === value);
+                });
+            }
+            
+            renderApplications();
+            renderTopology();
+        }
+        
+        // Set search filter
+        function setSearchFilter(type, value) {
+            if (type === 'namespace') {
+                currentFilters.searchNamespace = value;
+            } else if (type === 'app') {
+                currentFilters.searchApp = value;
+            }
+            
+            // Clear button filters when using search
+            if (value) {
+                document.querySelectorAll('[data-filter]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelectorAll('[data-filter-ns]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+            }
+            
+            renderApplications();
+            renderTopology();
+        }
+        
+        
+        // Scale replicas
+        function scaleReplicas(namespace, name, type, newReplicas) {
+            if (newReplicas < 0) return;
+            
+            scaleAction = { namespace, name, type, newReplicas };
+            
+            document.getElementById('modal-body').innerHTML = `
+                Are you sure you want to scale <strong>${name}</strong> in namespace <strong>${namespace}</strong> to <strong>${newReplicas}</strong> replicas?
+            `;
+            
+            document.getElementById('scale-modal').classList.add('show');
+        }
+        
+        // Confirm scale
+        async function confirmScale() {
+            if (!scaleAction) return;
+            
+            // Save the action before closing modal (which sets scaleAction to null)
+            const action = { ...scaleAction };
+            
+            closeModal();
+            
+            // Show loading indicator on the specific app card
+            const appCard = document.getElementById(`app-${action.namespace}-${action.name}`);
+            const replicaControls = document.getElementById(`replica-controls-${action.namespace}-${action.name}`);
+            
+            if (appCard) {
+                appCard.classList.add('scaling');
+            }
+            if (replicaControls) {
+                replicaControls.classList.add('scaling');
+            }
+            
+            // Show loading notification
+            showNotification(`Scaling ${action.name} to ${action.newReplicas} replicas...`, 'loading', true);
+            
+            try {
+                const response = await fetch(`/api/deployments/${action.namespace}/${action.name}/scale`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ replicas: action.newReplicas })
+                });
+                
+                const result = await response.json();
+                
+                // Remove loading indicators
+                if (appCard) {
+                    appCard.classList.remove('scaling');
+                }
+                if (replicaControls) {
+                    replicaControls.classList.remove('scaling');
+                }
+                
+                if (response.ok && result.success) {
+                    showNotification(`Successfully scaled ${action.name} to ${action.newReplicas} replicas`, 'success');
+                    setTimeout(loadClusterData, 2000);
+                } else {
+                    const errorMsg = result.error || result.message || 'Unknown error';
+                    showNotification(`Failed to scale: ${errorMsg}`, 'error');
+                    console.error('Scale error:', result);
+                }
+            } catch (error) {
+                // Remove loading indicators on error
+                if (appCard) {
+                    appCard.classList.remove('scaling');
+                }
+                if (replicaControls) {
+                    replicaControls.classList.remove('scaling');
+                }
+                showNotification(`Failed to scale replicas: ${error.message}`, 'error');
+                console.error('Scale exception:', error);
+            }
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('scale-modal').classList.remove('show');
+            scaleAction = null;
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'success', persistent = false) {
+            const notification = document.getElementById('notification');
+            
+            // Clear any existing content
+            notification.innerHTML = '';
+            
+            // Add spinner for loading type
+            if (type === 'loading') {
+                const spinner = document.createElement('div');
+                spinner.className = 'notification-spinner';
+                notification.appendChild(spinner);
+            }
+            
+            // Add message text
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = message;
+            notification.appendChild(messageSpan);
+            
+            notification.className = `notification ${type} show`;
+            
+            // Auto-hide after 3 seconds unless persistent (for loading states)
+            if (!persistent) {
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // LoadBalancer tooltip management
+        let lbTooltipTimeout = null;
+        let hideLbTooltipTimeout = null;
+        
+        function showLbTooltip(element) {
+            // Clear any existing hide timeout
+            if (hideLbTooltipTimeout) {
+                clearTimeout(hideLbTooltipTimeout);
+                hideLbTooltipTimeout = null;
+            }
+            
+            // Clear any existing show timeout
+            if (lbTooltipTimeout) {
+                clearTimeout(lbTooltipTimeout);
+            }
+            
+            // Add a small delay before showing tooltip
+            lbTooltipTimeout = setTimeout(() => {
+                const lbData = JSON.parse(element.getAttribute('data-lb'));
+                
+                // Remove any existing tooltip
+                const existingTooltip = document.getElementById('lb-tooltip');
+                if (existingTooltip) {
+                    existingTooltip.remove();
+                }
+                
+                // Create tooltip
+                const tooltip = document.createElement('div');
+                tooltip.id = 'lb-tooltip';
+                const isPending = !lbData.load_balancer_ip;
+                tooltip.className = isPending ? 'lb-tooltip pending' : 'lb-tooltip';
+                
+                // Add hover handlers to keep tooltip visible
+                tooltip.addEventListener('mouseenter', () => {
+                    if (hideLbTooltipTimeout) {
+                        clearTimeout(hideLbTooltipTimeout);
+                        hideLbTooltipTimeout = null;
+                    }
+                });
+                tooltip.addEventListener('mouseleave', () => {
+                    scheduleHideLbTooltip();
+                });
+                
+                // Build tooltip content
+                let tooltipContent = `<div class="lb-tooltip-header">${lbData.name}</div>`;
+                
+                // External IP section
+                if (lbData.load_balancer_ip) {
+                    tooltipContent += `
+                        <div class="lb-tooltip-ip">
+                            <div class="lb-tooltip-ip-label">EXTERNAL IP</div>
+                            <div class="lb-tooltip-ip-value">${lbData.load_balancer_ip}</div>
+                        </div>
+                    `;
+                } else {
+                    tooltipContent += `
+                        <div class="lb-tooltip-ip pending">
+                            <div class="lb-tooltip-ip-label">EXTERNAL IP</div>
+                            <div class="lb-tooltip-ip-value">Pending...</div>
+                        </div>
+                    `;
+                }
+                
+                // Cluster IP
+                tooltipContent += `
+                    <div class="lb-tooltip-section">
+                        <div class="lb-tooltip-label">Cluster IP</div>
+                        <div class="lb-tooltip-value">${lbData.cluster_ip || 'None'}</div>
+                    </div>
+                `;
+                
+                // Ports
+                if (lbData.ports && lbData.ports.length > 0) {
+                    tooltipContent += `
+                        <div class="lb-tooltip-section">
+                            <div class="lb-tooltip-label">Ports</div>
+                            <div class="lb-tooltip-ports">
+                    `;
+                    lbData.ports.forEach(port => {
+                        const portName = port.name ? `${port.name}: ` : '';
+                        const targetPort = port.target_port ? `:${port.target_port}` : '';
+                        tooltipContent += `
+                            <div class="lb-tooltip-port">${portName}${port.port}${targetPort} ${port.protocol || 'TCP'}</div>
+                        `;
+                    });
+                    tooltipContent += `
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                tooltip.innerHTML = tooltipContent;
+                
+                // Position tooltip
+                document.body.appendChild(tooltip);
+                const rect = element.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                
+                // Position below the element
+                tooltip.style.top = `${rect.bottom + 8}px`;
+                tooltip.style.left = `${rect.left + (rect.width / 2) - (tooltipRect.width / 2)}px`;
+                
+                // Adjust if tooltip goes off screen horizontally
+                if (tooltipRect.right > window.innerWidth) {
+                    tooltip.style.left = `${window.innerWidth - tooltipRect.width - 10}px`;
+                }
+                if (tooltipRect.left < 0) {
+                    tooltip.style.left = '10px';
+                }
+                
+                // Adjust if tooltip goes off screen vertically (show above instead)
+                if (tooltipRect.bottom > window.innerHeight) {
+                    tooltip.style.top = `${rect.top - tooltipRect.height - 8}px`;
+                }
+            }, 300); // 300ms delay
+        }
+        
+        function scheduleHideLbTooltip() {
+            // Clear any existing show timeout
+            if (lbTooltipTimeout) {
+                clearTimeout(lbTooltipTimeout);
+                lbTooltipTimeout = null;
+            }
+            
+            // Schedule hiding the tooltip after a short delay
+            hideLbTooltipTimeout = setTimeout(() => {
+                const tooltip = document.getElementById('lb-tooltip');
+                if (tooltip) {
+                    tooltip.remove();
+                }
+            }, 200); // 200ms delay before hiding
+        }
+        
+        // Pod IP tooltip management
+        let podIpTooltipTimeout = null;
+        let hidePodIpTooltipTimeout = null;
+        
+        function showPodIpTooltip(element) {
+            // Clear any existing hide timeout
+            if (hidePodIpTooltipTimeout) {
+                clearTimeout(hidePodIpTooltipTimeout);
+                hidePodIpTooltipTimeout = null;
+            }
+            
+            // Clear any existing show timeout
+            if (podIpTooltipTimeout) {
+                clearTimeout(podIpTooltipTimeout);
+            }
+            
+            // Add a small delay before showing tooltip
+            podIpTooltipTimeout = setTimeout(() => {
+                const podData = JSON.parse(element.getAttribute('data-pod'));
+                
+                // Remove any existing tooltip
+                const existingTooltip = document.getElementById('pod-ip-tooltip');
+                if (existingTooltip) {
+                    existingTooltip.remove();
+                }
+                
+                // Create tooltip
+                const tooltip = document.createElement('div');
+                tooltip.id = 'pod-ip-tooltip';
+                tooltip.className = 'pod-ip-tooltip';
+                
+                // Add hover handlers to keep tooltip visible
+                tooltip.addEventListener('mouseenter', () => {
+                    if (hidePodIpTooltipTimeout) {
+                        clearTimeout(hidePodIpTooltipTimeout);
+                        hidePodIpTooltipTimeout = null;
+                    }
+                });
+                tooltip.addEventListener('mouseleave', () => {
+                    scheduleHidePodIpTooltip();
+                });
+                
+                // Build tooltip content
+                let tooltipContent = `<div class="pod-ip-tooltip-header">${podData.name}</div>`;
+                
+                // Pod IP section
+                tooltipContent += `
+                    <div class="pod-ip-tooltip-ip">
+                        <div class="pod-ip-tooltip-ip-label">POD IP</div>
+                        <div class="pod-ip-tooltip-ip-value">${podData.ip}</div>
+                    </div>
+                `;
+                
+                // Status
+                tooltipContent += `
+                    <div class="pod-ip-tooltip-section">
+                        <div class="pod-ip-tooltip-label">Status</div>
+                        <div class="pod-ip-tooltip-value">${podData.status}</div>
+                    </div>
+                `;
+                
+                // Node
+                tooltipContent += `
+                    <div class="pod-ip-tooltip-section">
+                        <div class="pod-ip-tooltip-label">Node</div>
+                        <div class="pod-ip-tooltip-value">${podData.node}</div>
+                    </div>
+                `;
+                
+                tooltip.innerHTML = tooltipContent;
+                
+                // Position tooltip
+                document.body.appendChild(tooltip);
+                const rect = element.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                
+                // Position below the element
+                tooltip.style.top = `${rect.bottom + 8}px`;
+                tooltip.style.left = `${rect.left + (rect.width / 2) - (tooltipRect.width / 2)}px`;
+                
+                // Adjust if tooltip goes off screen horizontally
+                if (tooltipRect.right > window.innerWidth) {
+                    tooltip.style.left = `${window.innerWidth - tooltipRect.width - 10}px`;
+                }
+                if (tooltipRect.left < 0) {
+                    tooltip.style.left = '10px';
+                }
+                
+                // Adjust if tooltip goes off screen vertically (show above instead)
+                if (tooltipRect.bottom > window.innerHeight) {
+                    tooltip.style.top = `${rect.top - tooltipRect.height - 8}px`;
+                }
+            }, 300); // 300ms delay
+        }
+        
+        function scheduleHidePodIpTooltip() {
+            // Clear any existing show timeout
+            if (podIpTooltipTimeout) {
+                clearTimeout(podIpTooltipTimeout);
+                podIpTooltipTimeout = null;
+            }
+            
+            // Schedule hiding the tooltip after a short delay
+            hidePodIpTooltipTimeout = setTimeout(() => {
+                const tooltip = document.getElementById('pod-ip-tooltip');
+                if (tooltip) {
+                    tooltip.remove();
+                }
+            }, 200); // 200ms delay before hiding
+        }
+        
+        // NodePort tooltip management
+        let npTooltipTimeout = null;
+        let hideNpTooltipTimeout = null;
+        
+        function showNpTooltip(element) {
+            // Clear any existing hide timeout
+            if (hideNpTooltipTimeout) {
+                clearTimeout(hideNpTooltipTimeout);
+                hideNpTooltipTimeout = null;
+            }
+            
+            // Clear any existing show timeout
+            if (npTooltipTimeout) {
+                clearTimeout(npTooltipTimeout);
+            }
+            
+            // Add a small delay before showing tooltip
+            npTooltipTimeout = setTimeout(() => {
+                const npData = JSON.parse(element.getAttribute('data-np'));
+                
+                // Remove any existing tooltip
+                const existingTooltip = document.getElementById('np-tooltip');
+                if (existingTooltip) {
+                    existingTooltip.remove();
+                }
+                
+                // Create tooltip
+                const tooltip = document.createElement('div');
+                tooltip.id = 'np-tooltip';
+                tooltip.className = 'np-tooltip';
+                
+                // Add hover handlers to keep tooltip visible
+                tooltip.addEventListener('mouseenter', () => {
+                    if (hideNpTooltipTimeout) {
+                        clearTimeout(hideNpTooltipTimeout);
+                        hideNpTooltipTimeout = null;
+                    }
+                });
+                tooltip.addEventListener('mouseleave', () => {
+                    scheduleHideNpTooltip();
+                });
+                
+                // Build tooltip content - simple format showing just IPs and ports
+                let tooltipContent = `<div class="np-tooltip-header">${npData.name}</div>`;
+                
+                // Show all node IPs with NodePort (external access)
+                if (npData.node_ips && npData.node_ips.length > 0 && npData.ports && npData.ports.length > 0) {
+                    tooltipContent += `
+                        <div class="np-tooltip-section">
+                            <div class="np-tooltip-label">Node IPs (External)</div>
+                    `;
+                    // For each port that has a node_port
+                    npData.ports.forEach(port => {
+                        if (port.node_port) {
+                            // Show all node IPs for this port
+                            npData.node_ips.forEach(nodeIp => {
+                                tooltipContent += `
+                                    <div class="np-tooltip-value">${nodeIp}:${port.node_port}</div>
+                                `;
+                            });
+                        }
+                    });
+                    tooltipContent += `
+                        </div>
+                    `;
+                }
+                
+                // Show Cluster IP (internal access)
+                if (npData.cluster_ip && npData.cluster_ip !== 'None') {
+                    tooltipContent += `
+                        <div class="np-tooltip-section">
+                            <div class="np-tooltip-label">Cluster IP (Internal)</div>
+                            <div class="np-tooltip-value">${npData.cluster_ip}</div>
+                        </div>
+                    `;
+                }
+                
+                // Port Mappings
+                if (npData.ports && npData.ports.length > 0) {
+                    tooltipContent += `
+                        <div class="np-tooltip-section">
+                            <div class="np-tooltip-label">Port Mappings</div>
+                            <div class="np-tooltip-ports">
+                    `;
+                    npData.ports.forEach(port => {
+                        const portName = port.name ? `${port.name}: ` : '';
+                        const nodePort = port.node_port ? `${port.node_port}→` : '';
+                        const targetPort = port.target_port ? `→${port.target_port}` : '';
+                        tooltipContent += `
+                            <div class="np-tooltip-port">${portName}${nodePort}${port.port}${targetPort} ${port.protocol || 'TCP'}</div>
+                        `;
+                    });
+                    tooltipContent += `
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                tooltip.innerHTML = tooltipContent;
+                
+                // Position tooltip
+                document.body.appendChild(tooltip);
+                const rect = element.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                
+                // Position below the element
+                tooltip.style.top = `${rect.bottom + 8}px`;
+                tooltip.style.left = `${rect.left + (rect.width / 2) - (tooltipRect.width / 2)}px`;
+                
+                // Adjust if tooltip goes off screen horizontally
+                if (tooltipRect.right > window.innerWidth) {
+                    tooltip.style.left = `${window.innerWidth - tooltipRect.width - 10}px`;
+                }
+                if (tooltipRect.left < 0) {
+                    tooltip.style.left = '10px';
+                }
+                
+                // Adjust if tooltip goes off screen vertically (show above instead)
+                if (tooltipRect.bottom > window.innerHeight) {
+                    tooltip.style.top = `${rect.top - tooltipRect.height - 8}px`;
+                }
+            }, 300); // 300ms delay
+        }
+        
+        function scheduleHideNpTooltip() {
+            // Clear any existing show timeout
+            if (npTooltipTimeout) {
+                clearTimeout(npTooltipTimeout);
+                npTooltipTimeout = null;
+            }
+            
+            // Schedule hiding the tooltip after a short delay
+            hideNpTooltipTimeout = setTimeout(() => {
+                const tooltip = document.getElementById('np-tooltip');
+                if (tooltip) {
+                    tooltip.remove();
+                }
+            }, 200); // 200ms delay before hiding
+        }
+        
+        // ClusterIP tooltip management
+        let ciTooltipTimeout = null;
+        let hideCiTooltipTimeout = null;
+        
+        function showCiTooltip(element) {
+            // Clear any existing hide timeout
+            if (hideCiTooltipTimeout) {
+                clearTimeout(hideCiTooltipTimeout);
+                hideCiTooltipTimeout = null;
+            }
+            
+            // Clear any existing show timeout
+            if (ciTooltipTimeout) {
+                clearTimeout(ciTooltipTimeout);
+            }
+            
+            // Add a small delay before showing tooltip
+            ciTooltipTimeout = setTimeout(() => {
+                const ciData = JSON.parse(element.getAttribute('data-ci'));
+                
+                // Remove any existing tooltip
+                const existingTooltip = document.getElementById('ci-tooltip');
+                if (existingTooltip) {
+                    existingTooltip.remove();
+                }
+                
+                // Create tooltip
+                const tooltip = document.createElement('div');
+                tooltip.id = 'ci-tooltip';
+                tooltip.className = 'ci-tooltip';
+                
+                // Add hover handlers to keep tooltip visible
+                tooltip.addEventListener('mouseenter', () => {
+                    if (hideCiTooltipTimeout) {
+                        clearTimeout(hideCiTooltipTimeout);
+                        hideCiTooltipTimeout = null;
+                    }
+                });
+                tooltip.addEventListener('mouseleave', () => {
+                    scheduleHideCiTooltip();
+                });
+                
+                // Build tooltip content
+                let tooltipContent = `<div class="ci-tooltip-header">${ciData.name}</div>`;
+                
+                // Show Cluster IP (internal access only)
+                if (ciData.cluster_ip && ciData.cluster_ip !== 'None') {
+                    tooltipContent += `
+                        <div class="ci-tooltip-ip">
+                            <div class="ci-tooltip-ip-label">Cluster IP (Internal Only)</div>
+                            <div class="ci-tooltip-ip-value">${ciData.cluster_ip}</div>
+                        </div>
+                    `;
+                }
+                
+                // Port Mappings
+                if (ciData.ports && ciData.ports.length > 0) {
+                    tooltipContent += `
+                        <div class="ci-tooltip-section">
+                            <div class="ci-tooltip-label">Port Mappings</div>
+                            <div class="ci-tooltip-ports">
+                    `;
+                    ciData.ports.forEach(port => {
+                        const portName = port.name ? `${port.name}: ` : '';
+                        const targetPort = port.target_port ? `→${port.target_port}` : '';
+                        tooltipContent += `
+                            <div class="ci-tooltip-port">${portName}${port.port}${targetPort} ${port.protocol || 'TCP'}</div>
+                        `;
+                    });
+                    tooltipContent += `
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                tooltip.innerHTML = tooltipContent;
+                
+                // Position tooltip
+                document.body.appendChild(tooltip);
+                const rect = element.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                
+                // Position below the element
+                tooltip.style.top = `${rect.bottom + 8}px`;
+                tooltip.style.left = `${rect.left + (rect.width / 2) - (tooltipRect.width / 2)}px`;
+                
+                // Adjust if tooltip goes off screen horizontally
+                if (tooltipRect.right > window.innerWidth) {
+                    tooltip.style.left = `${window.innerWidth - tooltipRect.width - 10}px`;
+                }
+                if (tooltipRect.left < 0) {
+                    tooltip.style.left = '10px';
+                }
+                
+                // Adjust if tooltip goes off screen vertically (show above instead)
+                if (tooltipRect.bottom > window.innerHeight) {
+                    tooltip.style.top = `${rect.top - tooltipRect.height - 8}px`;
+                }
+            }, 300); // 300ms delay
+        }
+        
+        function scheduleHideCiTooltip() {
+            // Clear any existing show timeout
+            if (ciTooltipTimeout) {
+                clearTimeout(ciTooltipTimeout);
+                ciTooltipTimeout = null;
+            }
+            
+            // Schedule hiding the tooltip after a short delay
+            hideCiTooltipTimeout = setTimeout(() => {
+                const tooltip = document.getElementById('ci-tooltip');
+                if (tooltip) {
+                    tooltip.remove();
+                }
+            }, 200); // 200ms delay before hiding
+        }
+        
+        // Helper: Check if namespace is system
+        function isSystemNamespace(namespace) {
+            const systemNamespaces = [
+                'kube-system', 
+                'kube-public', 
+                'kube-node-lease', 
+                'kommander', 
+                'kommander-flux',
+                'cert-manager',
+                'ingress-nginx',
+                'metallb-system',
+                'monitoring',
+                'logging',
+                'velero',
+                'ntnx-system'
+            ];
+            return systemNamespaces.includes(namespace);
+        }
+        
+        // Helper: Format memory
+        function formatMemory(memory) {
+            if (!memory) return 'N/A';
+            const match = memory.match(/^(\d+)(\w+)$/);
+            if (!match) return memory;
+            
+            const value = parseInt(match[1]);
+            const unit = match[2];
+            
+            if (unit === 'Ki') {
+                return `${(value / 1024 / 1024).toFixed(1)} GB`;
+            } else if (unit === 'Mi') {
+                return `${(value / 1024).toFixed(1)} GB`;
+            } else if (unit === 'Gi') {
+                return `${value} GB`;
+            }
+            
+            return memory;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes Resources - NKP Cluster Visualizer</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        :root {
+            --brand-primary: #4f46e5;
+            --brand-secondary: #7c3aed;
+            --brand-accent: #0ea5e9;
+            --success: #059669;
+            --warning: #d97706;
+            --error: #dc2626;
+            --info: #0284c7;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-400: #94a3b8;
+            --neutral-500: #64748b;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+            --neutral-900: #0f172a;
+            --white: #ffffff;
+            --bg-primary: var(--neutral-50);
+            --bg-secondary: var(--white);
+            --bg-tertiary: var(--neutral-100);
+            --text-primary: var(--neutral-800);
+            --text-secondary: var(--neutral-600);
+            --text-muted: var(--neutral-500);
+            --border-light: var(--neutral-200);
+            --border-medium: var(--neutral-300);
+            --border-strong: var(--neutral-400);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            color: white;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
+        }
+        
+        .header-container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .nav-actions-menu {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .nav-icon-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-icon-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-icon-btn svg {
+            flex-shrink: 0;
+        }
+
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nutanix-logo {
+            width: 200px;
+            height: auto;
+            margin-bottom: 0.5rem;
+        }
+
+        .nutanix-logo .st0 {
+            fill: white;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        @media (max-width: 768px) {
+            .nav-btn-label {
+                display: none;
+            }
+            .nav-icon-btn {
+                padding: 0.625rem;
+            }
+        }
+        
+        /* Main Content */
+        .content {
+            padding: 2rem;
+        }
+        
+        /* Filter Bar */
+        .filter-bar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .filter-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.625rem 1rem;
+            border: 2px solid var(--border-medium);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+        }
+        
+        .refresh-btn {
+            padding: 0.625rem 1.25rem;
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .refresh-btn:hover {
+            background: var(--brand-secondary);
+            transform: translateY(-1px);
+        }
+        
+        /* Resource Section */
+        .resource-section {
+            margin-bottom: 2rem;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px 12px 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .section-header:hover {
+            background: var(--neutral-200);
+        }
+        
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2rem;
+            height: 2rem;
+            padding: 0 0.5rem;
+            background: var(--brand-primary);
+            color: white;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+        
+        .toggle-icon {
+            font-size: 1.25rem;
+            transition: transform 0.2s;
+        }
+        
+        .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        /* Table */
+        .table-container {
+            border: 1px solid var(--border-light);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .table-container.expanded {
+            max-height: 2000px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        thead {
+            background: var(--neutral-100);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        th {
+            padding: 0.875rem 1rem;
+            text-align: left;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-medium);
+        }
+        
+        td {
+            padding: 0.875rem 1rem;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        tbody tr {
+            transition: background 0.15s;
+        }
+        
+        tbody tr:hover {
+            background: var(--neutral-50);
+        }
+        
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-ready, .status-running, .status-bound {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-notready, .status-pending, .status-failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-unknown {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        /* Orphaned Resource Badge */
+        .orphaned-badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #fef3c7;
+            color: #92400e;
+            margin-left: 0.5rem;
+        }
+        
+        .orphaned-row {
+            background: #fffbeb !important;
+        }
+        
+        .orphaned-row:hover {
+            background: #fef3c7 !important;
+        }
+        
+        /* Pending Deletion Badge */
+        .pending-deletion-badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #fee2e2;
+            color: #991b1b;
+            margin-left: 0.5rem;
+        }
+        
+        .pending-deletion-row {
+            background: #fef2f2 !important;
+            border-left: 3px solid #dc2626 !important;
+        }
+        
+        .pending-deletion-row:hover {
+            background: #fee2e2 !important;
+        }
+        
+        /* Expand/Collapse All Button */
+        .expand-collapse-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .expand-collapse-btn:hover {
+            background: var(--brand-secondary);
+            transform: translateY(-1px);
+        }
+        
+        /* Expandable Pod Rows */
+        .expandable-row {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .expandable-row:hover {
+            background: var(--neutral-100) !important;
+        }
+        
+        .expand-icon {
+            display: inline-block;
+            margin-right: 0.5rem;
+            transition: transform 0.2s;
+            font-size: 0.875rem;
+            color: var(--brand-primary);
+        }
+        
+        .expand-icon.expanded {
+            transform: rotate(90deg);
+        }
+        
+        .pod-details-row {
+            display: none;
+            background: var(--neutral-50) !important;
+        }
+        
+        .pod-details-row.visible {
+            display: table-row;
+        }
+        
+        .pod-details-cell {
+            padding: 0 !important;
+        }
+        
+        .pod-details-container {
+            padding: 1rem 2rem;
+            border-left: 3px solid var(--brand-primary);
+            margin: 0.5rem 0;
+        }
+        
+        .pod-details-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .pod-details-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .pod-details-table th {
+            background: var(--neutral-100);
+            padding: 0.625rem 0.875rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .pod-details-table td {
+            padding: 0.625rem 0.875rem;
+            font-size: 0.8125rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .pod-details-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .pod-details-table tbody tr:hover {
+            background: var(--neutral-50);
+        }
+        
+        .pod-count-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.125rem 0.5rem;
+            background: var(--brand-accent);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        
+        /* Empty State */
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        /* Loading */
+        .loading {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-light);
+            border-top-color: var(--brand-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content {
+                padding: 1rem;
+            }
+            
+            table {
+                font-size: 0.75rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+            
+            .section-title {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-container">
+                <div class="nav-actions-menu">
+                    <a href="/" class="nav-icon-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                        <span class="nav-btn-label">Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="header-content">
+                    <svg class="nutanix-logo" viewBox="0 0 1064.95 134.32" xmlns="http://www.w3.org/2000/svg">
+                        <style type="text/css">.st0{fill:#131313;}</style>
+                        <path class="st0" d="M476.14,28.26h-53.43c-0.05,0-0.08,0.04-0.08,0.08v103.97c0,1.1-0.9,2-2,2h-25.81c-1.1,0-2-0.9-2-2V28.34c0-0.05-0.04-0.08-0.08-0.08h-53.28c-1.1,0-2-0.9-2-2V2.98c0-1.1,0.9-2,2-2h136.68c1.1,0,2,0.9,2,2v23.28C478.14,27.36,477.25,28.26,476.14,28.26z M855.74,0.98h-25.81c-1.1,0-2,0.9-2,2v129.34c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2V2.98C857.74,1.87,856.84,0.98,855.74,0.98z M1064.31,131.08c0.58,0.5,0.79,1.32,0.52,2.04s-0.96,1.2-1.73,1.2h-39.75c-0.44,0-0.87-0.16-1.21-0.45l-43.67-37.79c-0.4-0.35-0.64-0.86-0.64-1.39c0-0.54,0.23-1.04,0.64-1.39l19.87-17.2c0.69-0.6,1.72-0.6,2.41,0L1064.31,131.08z M998.36,59.2c0.35,0.3,0.78,0.45,1.21,0.45c0.43,0,0.86-0.15,1.21-0.45l63.54-54.99c0.58-0.5,0.79-1.32,0.52-2.04c-0.27-0.72-0.96-1.2-1.73-1.2h-39.75c-0.44,0-0.87,0.16-1.21,0.45l-43.67,37.79c-0.4,0.35-0.64,0.86-0.64,1.39c0,0.54,0.23,1.04,0.64,1.39L998.36,59.2z M990.04,67.65c0-0.54-0.23-1.04-0.64-1.39L914.49,1.43c-0.33-0.29-0.76-0.45-1.21-0.45h-39.75c-0.77,0-1.46,0.48-1.73,1.2s-0.06,1.53,0.52,2.04l73.23,63.37c0.04,0.03,0.04,0.09,0,0.13l-73.23,63.37c-0.58,0.5-0.79,1.32-0.52,2.04s0.96,1.2,1.73,1.2h39.75c0.44,0,0.87-0.16,1.21-0.45l74.91-64.83C989.81,68.69,990.04,68.18,990.04,67.65z M29.81,44.32c0-0.07,0.08-0.11,0.13-0.07c3.92,3.51,93.13,83.39,97.43,86.77c3.8,2.98,8.19,4.83,13.91,3.99c7.4-0.9,15.54-7.22,15.54-17.86V2.98c0-1.1-0.9-2-2-2h-25.81c-1.1,0-2,0.9-2,2v87.91c0,0.07-0.08,0.11-0.13,0.07c-3.92-3.51-93.13-83.39-97.43-86.77c-3.8-2.98-8.19-4.83-13.91-3.99C8.14,1.1,0,7.43,0,18.06v114.25c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2L29.81,44.32z M684.96,44.32c0-0.07,0.08-0.11,0.13-0.07c3.92,3.51,93.13,83.39,97.43,86.77c3.8,2.98,8.19,4.83,13.91,3.99c7.4-0.9,15.54-7.22,15.54-17.86V2.98c0-1.1-0.9-2-2-2h-25.81c-1.1,0-2,0.9-2,2v87.91c0,0.07-0.08,0.11-0.13,0.07c-3.92-3.51-93.13-83.39-97.43-86.77c-3.8-2.98-8.19-4.83-13.91-3.99c-7.4,0.9-15.54,7.23-15.54,17.86v114.25c0,1.1,0.9,2,2,2h25.81c1.1,0,2-0.9,2-2V44.32z M255.72,136.96c16.08-0.04,34-0.95,45-7.44c14.64-8.64,21.76-20.64,21.76-36.67l0.01-89.87c0-1.1-0.9-2-2-2h-26.06c-1.1,0-2,0.9-2,2l-0.01,88.12c-0.25,17.54-21.98,17.72-37.66,17.72h-14.25c-15.68,0-37.4-0.17-37.66-17.72l-0.01-88.12c0-1.1-0.9-2-2-2h-26.06c-1.1,0-2,0.9-2,2l0.01,89.87c0,16.03,7.12,28.03,21.76,36.67c11,6.49,28.92,7.41,45,7.44H255.72z M642.86,131.31c0.41,0.58,0.46,1.34,0.14,1.98c-0.32,0.63-0.97,1.03-1.68,1.03h-31.87c-0.64,0-1.24-0.31-1.61-0.84l-18.59-26.58c-0.02-0.02-0.04-0.04-0.07-0.04h-95.56c-0.03,0-0.05,0.01-0.07,0.04l-18.66,26.61c-0.35,0.51-0.93,0.81-1.54,0.81h-31.87c-0.71,0-1.36-0.4-1.68-1.03s-0.27-1.4,0.14-1.98c0,0,81.05-115.69,86.05-122.6S536.02,0,541.44,0c5.97,0,10.58,2.23,15.02,8.18L642.86,131.31z M569.84,79.45L541.48,39.3c-0.03-0.05-0.1-0.05-0.14,0l-28.37,40.15c-0.04,0.06,0,0.13,0.07,0.13h56.73C569.84,79.58,569.88,79.5,569.84,79.45z"/>
+                    </svg>
+                    <h1>Kubernetes Resources</h1>
+                    <p class="subtitle">Complete view of all cluster resources</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <input type="text" id="searchInput" class="filter-input" placeholder="Search resources by name or namespace...">
+                <button class="expand-collapse-btn" onclick="toggleAllSections()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                    <span id="toggleAllText">Collapse All</span>
+                </button>
+                <button class="refresh-btn" onclick="loadResources()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 1rem;">Loading resources...</p>
+            </div>
+
+            <!-- Resources Container -->
+            <div id="resourcesContainer" style="display: none;">
+                <!-- Pods -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('pods')">
+                        <div class="section-title">
+                            <span>Pods <span style="font-size: 0.75rem; font-weight: 400; opacity: 0.7;">(Orphaned & Pending Deletion)</span></span>
+                            <span class="section-count" id="podsCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="podsToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="podsTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Status</th>
+                                    <th>Ready</th>
+                                    <th>Restarts</th>
+                                    <th>Node</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="podsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Deployments -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('deployments')">
+                        <div class="section-title">
+                            <span>Deployments</span>
+                            <span class="section-count" id="deploymentsCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="deploymentsToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="deploymentsTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Replicas</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deploymentsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- StatefulSets -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('statefulsets')">
+                        <div class="section-title">
+                            <span>StatefulSets</span>
+                            <span class="section-count" id="statefulsetsCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="statefulsetsToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="statefulsetsTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Replicas</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statefulsetsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ReplicaSets -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('replicasets')">
+                        <div class="section-title">
+                            <span>ReplicaSets</span>
+                            <span class="section-count" id="replicasetsCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="replicasetsToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="replicasetsTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Desired</th>
+                                    <th>Current</th>
+                                    <th>Ready</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="replicasetsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('services')">
+                        <div class="section-title">
+                            <span>Services</span>
+                            <span class="section-count" id="servicesCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="servicesToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="servicesTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Type</th>
+                                    <th>Cluster IP</th>
+                                    <th>External IP</th>
+                                    <th>Ports</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="servicesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PVCs -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('pvcs')">
+                        <div class="section-title">
+                            <span>Persistent Volume Claims</span>
+                            <span class="section-count" id="pvcsCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="pvcsToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="pvcsTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Status</th>
+                                    <th>Volume</th>
+                                    <th>Capacity</th>
+                                    <th>Storage Class</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pvcsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PVs -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('pvs')">
+                        <div class="section-title">
+                            <span>Persistent Volumes (Unbound & Orphaned)</span>
+                            <span class="section-count" id="pvsCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="pvsToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="pvsTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Capacity</th>
+                                    <th>Access Modes</th>
+                                    <th>Reclaim Policy</th>
+                                    <th>Status</th>
+                                    <th>Claim</th>
+                                    <th>Storage Class</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pvsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ConfigMaps -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('configmaps')">
+                        <div class="section-title">
+                            <span>ConfigMaps</span>
+                            <span class="section-count" id="configmapsCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="configmapsToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="configmapsTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Data Keys</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="configmapsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Secrets -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('secrets')">
+                        <div class="section-title">
+                            <span>Secrets</span>
+                            <span class="section-count" id="secretsCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="secretsToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="secretsTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Type</th>
+                                    <th>Data Keys</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="secretsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ServiceAccounts -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('serviceaccounts')">
+                        <div class="section-title">
+                            <span>Service Accounts</span>
+                            <span class="section-count" id="serviceaccountsCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="serviceaccountsToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="serviceaccountsTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Secrets</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="serviceaccountsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Applications -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('applications')">
+                        <div class="section-title">
+                            <span>NDK Applications</span>
+                            <span class="section-count" id="applicationsCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="applicationsToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="applicationsTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>State</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applicationsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Snapshots -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('snapshots')">
+                        <div class="section-title">
+                            <span>Application Snapshots</span>
+                            <span class="section-count" id="snapshotsCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="snapshotsToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="snapshotsTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>State</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="snapshotsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Protection Plans -->
+                <div class="resource-section">
+                    <div class="section-header" onclick="toggleSection('protectionPlans')">
+                        <div class="section-title">
+                            <span>App Protection Plans</span>
+                            <span class="section-count" id="protectionPlansCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="protectionPlansToggle">▼</span>
+                    </div>
+                    <div class="table-container expanded" id="protectionPlansTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Application</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="protectionPlansBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allResources = {};
+        let searchTerm = '';
+
+        // Load resources on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadResources();
+            
+            // Setup search
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                searchTerm = e.target.value.toLowerCase();
+                renderResources();
+            });
+        });
+
+        async function loadResources() {
+            try {
+                document.getElementById('loadingState').style.display = 'block';
+                document.getElementById('resourcesContainer').style.display = 'none';
+                
+                const response = await fetch('/api/resources');
+                const data = await response.json();
+                
+                allResources = data;
+                renderResources();
+                
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('resourcesContainer').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading resources:', error);
+                document.getElementById('loadingState').innerHTML = `
+                    <p style="color: var(--error);">Error loading resources: ${error.message}</p>
+                `;
+            }
+        }
+
+        function renderResources() {
+            renderPods();
+            renderDeployments();
+            renderStatefulSets();
+            renderReplicaSets();
+            renderServices();
+            renderPVCs();
+            renderPVs();
+            renderConfigMaps();
+            renderSecrets();
+            renderServiceAccounts();
+            renderApplications();
+            renderSnapshots();
+            renderProtectionPlans();
+        }
+
+        function filterResources(resources) {
+            if (!searchTerm) return resources;
+            return resources.filter(r => 
+                (r.name && r.name.toLowerCase().includes(searchTerm)) || 
+                (r.namespace && r.namespace.toLowerCase().includes(searchTerm))
+            );
+        }
+
+        function formatAge(timestamp) {
+            if (!timestamp) return '-';
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            if (days > 0) return `${days}d`;
+            if (hours > 0) return `${hours}h`;
+            return `${minutes}m`;
+        }
+
+        function getStatusClass(status) {
+            if (!status) return 'status-unknown';
+            const s = status.toLowerCase();
+            if (s === 'ready' || s === 'running' || s === 'bound' || s === 'active') return 'status-ready';
+            if (s === 'notready' || s === 'pending' || s === 'failed' || s === 'inactive') return 'status-notready';
+            return 'status-unknown';
+        }
+
+        function renderPods() {
+            const allPods = filterResources(allResources.pods || []);
+            // Show only orphaned pods (pods without controllers) in this section
+            // Pods managed by Deployments/StatefulSets are shown under their respective sections
+            const pods = allPods.filter(p => p.orphaned || p.pendingDeletion);
+            const tbody = document.getElementById('podsBody');
+            
+            // Update count to show orphaned/total
+            const orphanedCount = pods.length;
+            const totalCount = allPods.length;
+            document.getElementById('podsCount').textContent = orphanedCount > 0 ? `${orphanedCount}` : totalCount;
+            
+            if (pods.length === 0 && allPods.length > 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    ✅ All ${allPods.length} pods are managed by controllers (Deployments/StatefulSets)<br>
+                    <span style="font-size: 0.875rem; opacity: 0.8;">Expand Deployments or StatefulSets above to see their pods</span>
+                </td></tr>`;
+                return;
+            }
+            
+            if (pods.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No pods found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = pods.map(p => `
+                <tr class="${p.pendingDeletion ? 'pending-deletion-row' : (p.orphaned ? 'orphaned-row' : '')}">
+                    <td>
+                        <strong>${p.name}</strong>
+                        ${p.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (p.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                        ${!p.pendingDeletion && p.orphaned ? '<span class="orphaned-badge">Orphaned</span>' : ''}
+                    </td>
+                    <td>${p.namespace}</td>
+                    <td><span class="status-badge ${getStatusClass(p.status)}">${p.status}</span></td>
+                    <td>${p.ready}</td>
+                    <td>${p.restarts}</td>
+                    <td>${p.node}</td>
+                    <td>${formatAge(p.age)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderDeployments() {
+            const deployments = filterResources(allResources.deployments || []);
+            const tbody = document.getElementById('deploymentsBody');
+            document.getElementById('deploymentsCount').textContent = deployments.length;
+            
+            if (deployments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No deployments found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = deployments.map((d, index) => {
+                // Find pods for this deployment (via ReplicaSet)
+                const pods = (allResources.pods || []).filter(p => {
+                    // Pods are owned by ReplicaSets, which are owned by Deployments
+                    // ReplicaSet names start with deployment name
+                    return p.namespace === d.namespace && 
+                           p.ownerKind === 'ReplicaSet' && 
+                           p.ownerName && p.ownerName.startsWith(d.name + '-');
+                });
+                
+                const podCount = pods.length;
+                const rowId = `deployment-${index}`;
+                
+                return `
+                    <tr class="expandable-row ${d.pendingDeletion ? 'pending-deletion-row' : (d.orphaned ? 'orphaned-row' : '')}" onclick="togglePodDetails('${rowId}')">
+                        <td>
+                            ${podCount > 0 ? '<span class="expand-icon" id="icon-' + rowId + '">▶</span>' : ''}
+                            <strong>${d.name}</strong>
+                            ${podCount > 0 ? '<span class="pod-count-badge" title="' + podCount + ' pod(s)">' + podCount + ' pod' + (podCount !== 1 ? 's' : '') + '</span>' : ''}
+                            ${d.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (d.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                            ${!d.pendingDeletion && d.orphaned ? '<span class="orphaned-badge">Orphaned</span>' : ''}
+                        </td>
+                        <td>${d.namespace}</td>
+                        <td>${d.replicas}</td>
+                        <td>${formatAge(d.age)}</td>
+                    </tr>
+                    ${podCount > 0 ? `
+                    <tr class="pod-details-row" id="${rowId}">
+                        <td colspan="4" class="pod-details-cell">
+                            <div class="pod-details-container">
+                                <div class="pod-details-title">📦 Pods (${podCount})</div>
+                                <table class="pod-details-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Status</th>
+                                            <th>Ready</th>
+                                            <th>Restarts</th>
+                                            <th>Node</th>
+                                            <th>Age</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${pods.map(p => `
+                                            <tr class="${p.pendingDeletion ? 'pending-deletion-row' : ''}">
+                                                <td>
+                                                    ${p.name}
+                                                    ${p.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion">⏳</span>' : ''}
+                                                </td>
+                                                <td><span class="status-badge ${getStatusClass(p.status)}">${p.status}</span></td>
+                                                <td>${p.ready}</td>
+                                                <td>${p.restarts}</td>
+                                                <td>${p.node}</td>
+                                                <td>${formatAge(p.age)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    ` : ''}
+                `;
+            }).join('');
+        }
+
+        function renderStatefulSets() {
+            const statefulsets = filterResources(allResources.statefulsets || []);
+            const tbody = document.getElementById('statefulsetsBody');
+            document.getElementById('statefulsetsCount').textContent = statefulsets.length;
+            
+            if (statefulsets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No statefulsets found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = statefulsets.map((s, index) => {
+                // Find pods for this statefulset (directly owned)
+                const pods = (allResources.pods || []).filter(p => {
+                    return p.namespace === s.namespace && 
+                           p.ownerKind === 'StatefulSet' && 
+                           p.ownerName === s.name;
+                });
+                
+                const podCount = pods.length;
+                const rowId = `statefulset-${index}`;
+                
+                return `
+                    <tr class="expandable-row ${s.pendingDeletion ? 'pending-deletion-row' : (s.orphaned ? 'orphaned-row' : '')}" onclick="togglePodDetails('${rowId}')">
+                        <td>
+                            ${podCount > 0 ? '<span class="expand-icon" id="icon-' + rowId + '">▶</span>' : ''}
+                            <strong>${s.name}</strong>
+                            ${podCount > 0 ? '<span class="pod-count-badge" title="' + podCount + ' pod(s)">' + podCount + ' pod' + (podCount !== 1 ? 's' : '') + '</span>' : ''}
+                            ${s.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (s.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                            ${!s.pendingDeletion && s.orphaned ? '<span class="orphaned-badge">Orphaned</span>' : ''}
+                        </td>
+                        <td>${s.namespace}</td>
+                        <td>${s.replicas}</td>
+                        <td>${formatAge(s.age)}</td>
+                    </tr>
+                    ${podCount > 0 ? `
+                    <tr class="pod-details-row" id="${rowId}">
+                        <td colspan="4" class="pod-details-cell">
+                            <div class="pod-details-container">
+                                <div class="pod-details-title">📦 Pods (${podCount})</div>
+                                <table class="pod-details-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Status</th>
+                                            <th>Ready</th>
+                                            <th>Restarts</th>
+                                            <th>Node</th>
+                                            <th>Age</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${pods.map(p => `
+                                            <tr class="${p.pendingDeletion ? 'pending-deletion-row' : ''}">
+                                                <td>
+                                                    ${p.name}
+                                                    ${p.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion">⏳</span>' : ''}
+                                                </td>
+                                                <td><span class="status-badge ${getStatusClass(p.status)}">${p.status}</span></td>
+                                                <td>${p.ready}</td>
+                                                <td>${p.restarts}</td>
+                                                <td>${p.node}</td>
+                                                <td>${formatAge(p.age)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    ` : ''}
+                `;
+            }).join('');
+        }
+
+        function renderReplicaSets() {
+            const replicasets = filterResources(allResources.replicasets || []);
+            const tbody = document.getElementById('replicasetsBody');
+            document.getElementById('replicasetsCount').textContent = replicasets.length;
+            
+            if (replicasets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No replicasets found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = replicasets.map(rs => `
+                <tr class="${rs.pendingDeletion ? 'pending-deletion-row' : (rs.orphaned ? 'orphaned-row' : '')}">
+                    <td>
+                        <strong>${rs.name}</strong>
+                        ${rs.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (rs.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                        ${!rs.pendingDeletion && rs.orphaned ? '<span class="orphaned-badge">Orphaned</span>' : ''}
+                    </td>
+                    <td>${rs.namespace}</td>
+                    <td>${rs.desired}</td>
+                    <td>${rs.current}</td>
+                    <td>${rs.ready}</td>
+                    <td>${formatAge(rs.age)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderServices() {
+            const services = filterResources(allResources.services || []);
+            const tbody = document.getElementById('servicesBody');
+            document.getElementById('servicesCount').textContent = services.length;
+            
+            if (services.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No services found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = services.map(s => `
+                <tr class="${s.pendingDeletion ? 'pending-deletion-row' : (s.orphaned ? 'orphaned-row' : '')}">
+                    <td>
+                        <strong>${s.name}</strong>
+                        ${s.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (s.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                        ${!s.pendingDeletion && s.orphaned ? '<span class="orphaned-badge">Orphaned</span>' : ''}
+                    </td>
+                    <td>${s.namespace}</td>
+                    <td>${s.type}</td>
+                    <td><code style="font-size: 0.75rem;">${s.clusterIP}</code></td>
+                    <td>${s.externalIP}</td>
+                    <td>${s.ports}</td>
+                    <td>${formatAge(s.age)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPVCs() {
+            const pvcs = filterResources(allResources.pvcs || []);
+            const allPVs = allResources.pvs || [];
+            const tbody = document.getElementById('pvcsBody');
+            document.getElementById('pvcsCount').textContent = pvcs.length;
+            
+            if (pvcs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No PVCs found</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            pvcs.forEach((pvc, index) => {
+                const rowId = `pvc-${index}`;
+                
+                // Find the bound PV for this PVC
+                const boundPV = pvc.volume !== 'Pending' ? allPVs.find(pv => pv.name === pvc.volume) : null;
+                
+                // Create expand icon and badge if PV is bound
+                const expandIcon = boundPV ? `<span class="expand-icon" id="icon-${rowId}">▶</span>` : '';
+                const pvBadge = boundPV ? `<span class="pod-count-badge" style="background: var(--success);">PV Bound</span>` : '';
+                
+                // Main PVC row
+                const rowClass = pvc.pendingDeletion ? 'pending-deletion-row' : (pvc.orphaned ? 'orphaned-row' : '');
+                const expandableClass = boundPV ? 'expandable-row' : '';
+                const onclickAttr = boundPV ? `onclick="togglePodDetails('${rowId}')"` : '';
+                
+                html += `
+                    <tr class="${rowClass} ${expandableClass}" ${onclickAttr}>
+                        <td>
+                            ${expandIcon}
+                            <strong>${pvc.name}</strong>
+                            ${pvBadge}
+                            ${pvc.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (pvc.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                            ${!pvc.pendingDeletion && pvc.orphaned ? '<span class="orphaned-badge">Orphaned</span>' : ''}
+                        </td>
+                        <td>${pvc.namespace}</td>
+                        <td><span class="status-badge ${getStatusClass(pvc.status)}">${pvc.status}</span></td>
+                        <td><code style="font-size: 0.75rem;">${pvc.volume}</code></td>
+                        <td>${pvc.capacity}</td>
+                        <td>${pvc.storageClass}</td>
+                        <td>${formatAge(pvc.age)}</td>
+                    </tr>
+                `;
+                
+                // PV details row (expandable)
+                if (boundPV) {
+                    html += `
+                        <tr class="pod-details-row" id="${rowId}">
+                            <td colspan="7" style="padding: 0;">
+                                <div style="padding: 1rem; background: var(--neutral-50); border-left: 3px solid var(--success);">
+                                    <div style="font-weight: 600; margin-bottom: 0.75rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                        </svg>
+                                        Bound Persistent Volume
+                                    </div>
+                                    <table class="pod-details-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Capacity</th>
+                                                <th>Access Modes</th>
+                                                <th>Reclaim Policy</th>
+                                                <th>Status</th>
+                                                <th>Storage Class</th>
+                                                <th>Age</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <strong>${boundPV.name}</strong>
+                                                    ${boundPV.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion">⏳ Pending Deletion</span>' : ''}
+                                                </td>
+                                                <td>${boundPV.capacity}</td>
+                                                <td>${boundPV.accessModes}</td>
+                                                <td>${boundPV.reclaimPolicy}</td>
+                                                <td><span class="status-badge ${getStatusClass(boundPV.status)}">${boundPV.status}</span></td>
+                                                <td>${boundPV.storageClass}</td>
+                                                <td>${formatAge(boundPV.age)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        function renderPVs() {
+            const filteredPVs = filterResources(allResources.pvs || []);
+            const tbody = document.getElementById('pvsBody');
+            
+            // Filter to show only unbound, orphaned, and pending deletion PVs
+            const unboundPVs = filteredPVs.filter(pv => {
+                // Show if not bound (Available, Released, Failed)
+                if (pv.status !== 'Bound') return true;
+                
+                // Show if pending deletion
+                if (pv.pendingDeletion) return true;
+                
+                // Hide if bound to a PVC (shown under PVC section)
+                return false;
+            });
+            
+            // Update count to show unbound count
+            document.getElementById('pvsCount').textContent = unboundPVs.length;
+            
+            if (unboundPVs.length === 0 && filteredPVs.length > 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                            <div style="font-size: 1rem;">
+                                ✅ All ${filteredPVs.length} PVs are bound to PVCs<br>
+                                <small>Expand PVCs above to see their bound volumes</small>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            if (unboundPVs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">No PVs found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = unboundPVs.map(pv => `
+                <tr class="${pv.pendingDeletion ? 'pending-deletion-row' : (pv.orphaned ? 'orphaned-row' : '')}">
+                    <td>
+                        <strong>${pv.name}</strong>
+                        ${pv.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (pv.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                        ${!pv.pendingDeletion && pv.orphaned ? '<span class="orphaned-badge">Orphaned</span>' : ''}
+                    </td>
+                    <td>${pv.capacity}</td>
+                    <td>${pv.accessModes}</td>
+                    <td>${pv.reclaimPolicy}</td>
+                    <td><span class="status-badge ${getStatusClass(pv.status)}">${pv.status}</span></td>
+                    <td>${pv.claimNamespace}/${pv.claim}</td>
+                    <td>${pv.storageClass}</td>
+                    <td>${formatAge(pv.age)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderConfigMaps() {
+            const configmaps = filterResources(allResources.configmaps || []);
+            const tbody = document.getElementById('configmapsBody');
+            document.getElementById('configmapsCount').textContent = configmaps.length;
+            
+            if (configmaps.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No configmaps found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = configmaps.map(c => `
+                <tr class="${c.pendingDeletion ? 'pending-deletion-row' : (c.orphaned ? 'orphaned-row' : '')}">
+                    <td>
+                        <strong>${c.name}</strong>
+                        ${c.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (c.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                        ${!c.pendingDeletion && c.orphaned ? '<span class="orphaned-badge">Orphaned</span>' : ''}
+                    </td>
+                    <td>${c.namespace}</td>
+                    <td>${c.data_keys}</td>
+                    <td>${formatAge(c.age)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderSecrets() {
+            const secrets = filterResources(allResources.secrets || []);
+            const tbody = document.getElementById('secretsBody');
+            document.getElementById('secretsCount').textContent = secrets.length;
+            
+            if (secrets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No secrets found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = secrets.map(s => `
+                <tr class="${s.pendingDeletion ? 'pending-deletion-row' : (s.orphaned ? 'orphaned-row' : '')}">
+                    <td>
+                        <strong>${s.name}</strong>
+                        ${s.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (s.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                        ${!s.pendingDeletion && s.orphaned ? '<span class="orphaned-badge">Orphaned</span>' : ''}
+                    </td>
+                    <td>${s.namespace}</td>
+                    <td>${s.type}</td>
+                    <td>${s.data_keys}</td>
+                    <td>${formatAge(s.age)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderServiceAccounts() {
+            const serviceaccounts = filterResources(allResources.serviceaccounts || []);
+            const tbody = document.getElementById('serviceaccountsBody');
+            document.getElementById('serviceaccountsCount').textContent = serviceaccounts.length;
+            
+            if (serviceaccounts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No service accounts found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = serviceaccounts.map(sa => `
+                <tr class="${sa.pendingDeletion ? 'pending-deletion-row' : (sa.orphaned ? 'orphaned-row' : '')}">
+                    <td>
+                        <strong>${sa.name}</strong>
+                        ${sa.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (sa.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                        ${!sa.pendingDeletion && sa.orphaned ? '<span class="orphaned-badge">Orphaned</span>' : ''}
+                    </td>
+                    <td>${sa.namespace}</td>
+                    <td>${sa.secrets}</td>
+                    <td>${formatAge(sa.age)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderApplications() {
+            const applications = filterResources(allResources.applications || []);
+            const tbody = document.getElementById('applicationsBody');
+            document.getElementById('applicationsCount').textContent = applications.length;
+            
+            if (applications.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No applications found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = applications.map(a => `
+                <tr class="${a.pendingDeletion ? 'pending-deletion-row' : ''}">
+                    <td>
+                        <strong>${a.name}</strong>
+                        ${a.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (a.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                    </td>
+                    <td>${a.namespace}</td>
+                    <td><span class="status-badge ${getStatusClass(a.state)}">${a.state}</span></td>
+                    <td>${formatAge(a.age)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderSnapshots() {
+            const snapshots = filterResources(allResources.snapshots || []);
+            const tbody = document.getElementById('snapshotsBody');
+            document.getElementById('snapshotsCount').textContent = snapshots.length;
+            
+            if (snapshots.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No snapshots found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = snapshots.map(s => `
+                <tr class="${s.pendingDeletion ? 'pending-deletion-row' : ''}">
+                    <td>
+                        <strong>${s.name}</strong>
+                        ${s.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (s.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                    </td>
+                    <td>${s.namespace}</td>
+                    <td><span class="status-badge ${getStatusClass(s.state)}">${s.state}</span></td>
+                    <td>${formatAge(s.age)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderProtectionPlans() {
+            const plans = filterResources(allResources.protection_plans || []);
+            const tbody = document.getElementById('protectionPlansBody');
+            document.getElementById('protectionPlansCount').textContent = plans.length;
+            
+            if (plans.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No protection plans found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = plans.map(p => `
+                <tr class="${p.pendingDeletion ? 'pending-deletion-row' : ''}">
+                    <td>
+                        <strong>${p.name}</strong>
+                        ${p.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (p.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                    </td>
+                    <td>${p.namespace}</td>
+                    <td>${p.application}</td>
+                    <td>${formatAge(p.age)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleSection(section) {
+            const table = document.getElementById(`${section}Table`);
+            const toggle = document.getElementById(`${section}Toggle`);
+            
+            if (table.classList.contains('expanded')) {
+                table.classList.remove('expanded');
+                toggle.classList.add('collapsed');
+            } else {
+                table.classList.add('expanded');
+                toggle.classList.remove('collapsed');
+            }
+        }
+
+        function toggleAllSections() {
+            const sections = ['pods', 'deployments', 'statefulsets', 'replicasets', 'services', 'pvcs', 'pvs', 'configmaps', 'secrets', 'serviceaccounts', 'applications', 'snapshots', 'protectionPlans'];
+            const toggleAllText = document.getElementById('toggleAllText');
+            
+            // Check if any section is expanded
+            const anyExpanded = sections.some(section => {
+                const table = document.getElementById(`${section}Table`);
+                return table && table.classList.contains('expanded');
+            });
+            
+            // Toggle all sections
+            sections.forEach(section => {
+                const table = document.getElementById(`${section}Table`);
+                const toggle = document.getElementById(`${section}Toggle`);
+                
+                if (table && toggle) {
+                    if (anyExpanded) {
+                        table.classList.remove('expanded');
+                        toggle.classList.add('collapsed');
+                    } else {
+                        table.classList.add('expanded');
+                        toggle.classList.remove('collapsed');
+                    }
+                }
+            });
+            
+            // Update button text
+            toggleAllText.textContent = anyExpanded ? 'Expand All' : 'Collapse All';
+        }
+
+        function togglePodDetails(rowId) {
+            const detailsRow = document.getElementById(rowId);
+            const icon = document.getElementById('icon-' + rowId);
+            
+            if (detailsRow && icon) {
+                if (detailsRow.classList.contains('visible')) {
+                    detailsRow.classList.remove('visible');
+                    icon.classList.remove('expanded');
+                } else {
+                    detailsRow.classList.add('visible');
+                    icon.classList.add('expanded');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
