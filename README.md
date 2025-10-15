@@ -377,7 +377,42 @@ gunicorn -w 4 -b 0.0.0.0:5001 "app:create_app()"
 
 ### Kubernetes Deployment
 
-*Note: Kubernetes deployment manifests will be added in a future release.*
+All Kubernetes manifests are available in the `k8s/` directory.
+
+#### Quick Deploy
+```bash
+# Deploy all resources
+kubectl apply -f k8s/
+
+# Or use the deployment script
+./k8s/deploy.sh
+```
+
+#### Manual Deploy
+```bash
+# Apply manifests in order
+kubectl apply -f k8s/serviceaccount.yaml
+kubectl apply -f k8s/clusterrole.yaml
+kubectl apply -f k8s/clusterrolebinding.yaml
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/loadbalancer.yaml
+```
+
+#### Access the Application
+```bash
+# Get the LoadBalancer IP
+kubectl get svc nkp-cluster-visualizer-loadbalancer
+
+# Access via browser
+http://<EXTERNAL-IP>
+```
+
+#### Important: ClusterRole Permissions
+
+⚠️ **When adding new Kubernetes resource types**, you **MUST** update the ClusterRole in `k8s/clusterrole.yaml`.
+
+See `k8s/README.md` for detailed instructions on managing permissions.
 
 ## 🔍 Troubleshooting
 

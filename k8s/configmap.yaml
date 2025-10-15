@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nkp-cluster-visualizer-config
+  namespace: default
+  labels:
+    app: nkp-cluster-visualizer
+    environment: production
+    platform: nutanix
+    version: v3.3.0
+data:
+  VERSION: "v3.3.0"
+  GITHUB_REPO: "https://github.com/nutanixed/nkp-cluster-visualizer.git"
+  CLUSTER_NAME: "nkp-dev01"
+  BIND_PORT: "9090"
+  FLASK_ENV: "production"
+  IN_CLUSTER: "true"
+  SECRET_KEY: "nkp-production-secret-key-change-me-in-production"
+  DASHBOARD_USERNAME: "nutanix"
+  DASHBOARD_PASSWORD: "Nutanix/4u!"
+  SESSION_TIMEOUT_HOURS: "24"
+  LOG_LEVEL: "INFO"
+  REFRESH_INTERVAL: "30"
+  ENABLE_DRILL_DOWN: "true"
+  SHOW_RESOURCE_USAGE: "true"
+  THEME: "nutanix"

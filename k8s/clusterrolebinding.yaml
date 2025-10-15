@@ -1,0 +1,17 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nkp-cluster-visualizer-binding
+  labels:
+    app: nkp-cluster-visualizer
+    environment: production
+    platform: nutanix
+    version: v3.3.0
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: nkp-cluster-visualizer-role
+subjects:
+- kind: ServiceAccount
+  name: nkp-cluster-visualizer-sa
+  namespace: default
