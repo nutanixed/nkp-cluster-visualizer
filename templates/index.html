@@ -1644,15 +1644,15 @@
             <div class="filter-bar">
                 <div class="filter-group">
                     <span class="filter-label">Workload Type:</span>
-                    <button class="filter-btn active" data-filter="all" onclick="setFilter('type', 'all')">All</button>
-                    <button class="filter-btn" data-filter="deployment" onclick="setFilter('type', 'deployment')">Deployments</button>
+                    <button class="filter-btn" data-filter="all" onclick="setFilter('type', 'all')">All</button>
+                    <button class="filter-btn active" data-filter="deployment" onclick="setFilter('type', 'deployment')">Deployments</button>
                     <button class="filter-btn" data-filter="statefulset" onclick="setFilter('type', 'statefulset')">StatefulSets</button>
                     <button class="filter-btn" data-filter="system" onclick="setFilter('type', 'system')">System Pods</button>
                 </div>
                 <div class="filter-group">
                     <span class="filter-label">Pod Type:</span>
-                    <button class="filter-btn active" data-filter-ns="all" onclick="setFilter('namespace', 'all')">All</button>
-                    <button class="filter-btn" data-filter-ns="app" onclick="setFilter('namespace', 'app')">Application</button>
+                    <button class="filter-btn" data-filter-ns="all" onclick="setFilter('namespace', 'all')">All</button>
+                    <button class="filter-btn active" data-filter-ns="app" onclick="setFilter('namespace', 'app')">Application</button>
                     <button class="filter-btn" data-filter-ns="system" onclick="setFilter('namespace', 'system')">System</button>
                 </div>
                 <div class="filter-group">
@@ -1765,8 +1765,8 @@
     <script>
         let clusterData = null;
         let currentFilters = {
-            type: 'all',
-            namespace: 'all',
+            type: 'deployment',
+            namespace: 'app',
             searchNamespace: '',
             searchApp: ''
         };
