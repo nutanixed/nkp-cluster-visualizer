@@ -6,7 +6,7 @@ metadata:
     app: nkp-cluster-visualizer
     environment: production
     platform: nutanix
-    version: v3.3.0
+    version: v3.4.0
 rules:
 - apiGroups:
   - ""
@@ -128,6 +128,7 @@ rules:
   resources:
   - applications
   - applicationsnapshots
+  - applicationsnapshotrestores
   - protectionplans
   - appprotectionplans
   verbs:
