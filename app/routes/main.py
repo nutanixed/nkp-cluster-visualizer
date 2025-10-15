@@ -31,6 +31,19 @@ def health_check():
         # Simple health check - try to connect to Kubernetes API
         v1.list_node(limit=1)
         
+        # Fetch ClusterRoleBindings and RoleBindings first
+        cluster_role_bindings = []
+        try:
+            cluster_role_bindings = rbac_v1.list_cluster_role_binding().items
+        except:
+            pass
+        
+        role_bindings = []
+        try:
+            role_bindings = rbac_v1.list_role_binding_for_all_namespaces().items
+        except:
+            pass
+        
         # Format ClusterRoles
         clusterrole_list = []
         cluster_roles = []
