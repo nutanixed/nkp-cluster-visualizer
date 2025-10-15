@@ -828,9 +828,14 @@ def resources_api():
                         is_orphaned = False
                         break
             
-            # System ClusterRoles are not orphaned
-            is_system = cr.metadata.name.startswith('system:') or cr.metadata.name.startswith('cluster-')
-            if is_system:
+            # System ClusterRoles and aggregated roles are not orphaned
+            is_system = (cr.metadata.name.startswith('system:') or 
+                        cr.metadata.name.startswith('cluster-') or
+                        cr.metadata.name in ['admin', 'edit', 'view'])
+            
+            has_aggregation_rule = hasattr(cr, 'aggregation_rule') and cr.aggregation_rule is not None
+            
+            if is_system or has_aggregation_rule:
                 is_orphaned = False
             
             pending_deletion = is_pending_deletion(cr)
@@ -915,7 +920,7 @@ def resources_api():
         # Format DaemonSets
         daemonset_list = []
         for ds in daemonsets.items:
-            is_orphaned = not ds.metadata.owner_references
+            is_orphaned = False
             pending_deletion = is_pending_deletion(ds)
             
             desired = ds.status.desired_number_scheduled or 0
@@ -1146,7 +1151,17 @@ def resources_api():
         # Format NetworkPolicies
         networkpolicy_list = []
         for np in networkpolicies.items:
-            is_orphaned = not np.metadata.owner_references
+            is_orphaned = False
+            if np.spec.pod_selector:
+                match_labels = np.spec.pod_selector.match_labels if np.spec.pod_selector.match_labels else {}
+                if match_labels:
+                    has_matching_pods = any(
+                        pod.metadata.namespace == np.metadata.namespace and
+                        pod.metadata.labels and
+                        all(pod.metadata.labels.get(k) == v for k, v in match_labels.items())
+                        for pod in pods.items
+                    )
+                    is_orphaned = not has_matching_pods
             pending_deletion = is_pending_deletion(np)
             
             ingress_count = len(np.spec.ingress) if np.spec.ingress else 0
