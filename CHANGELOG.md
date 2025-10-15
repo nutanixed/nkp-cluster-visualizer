@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated tooltip to "Restore completed successfully - historical data"
 - **Fixed Field Reference**: Corrected snapshot reference from `spec.snapshotName` to `spec.applicationSnapshotName`
 - **Fixed Expand/Collapse**: Added ApplicationSnapshotRestores to the toggleAllSections array so it properly expands/collapses
+- **Fixed Orphaned Filter**: Added ApplicationSnapshotRestores to the toggleOrphanedFilter function so it properly expands/collapses when filtering
 
 ### 🔄 Changed
 
@@ -40,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed orphaned styling and badges from AppProtectionPlans (line 2122)
   - Updated ApplicationSnapshotRestores orphaned badge tooltip (line 2079)
   - Added ApplicationSnapshotRestores to toggleAllSections array (line 2625) - Fixes expand/collapse functionality
+  - Added ApplicationSnapshotRestores to toggleOrphanedFilter arrays (lines 2662, 2680) - Fixes orphaned filter expand/collapse
 
 ### 📊 Impact
 

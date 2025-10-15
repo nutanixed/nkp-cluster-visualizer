@@ -2659,7 +2659,7 @@
             if (orphanedOnly) {
                 text.textContent = 'All Resources';
                 // Expand all sections when filtering by orphaned
-                const sections = ['applications', 'clusterrolebindings', 'clusterroles', 'configmaps', 'cronjobs',
+                const sections = ['applications', 'applicationsnapshotrestores', 'clusterrolebindings', 'clusterroles', 'configmaps', 'cronjobs',
                     'daemonsets', 'deployments', 'endpoints', 'horizontalpodautoscalers', 'ingresses', 
                     'jobs', 'limitranges', 'namespaces', 'networkpolicies', 'poddisruptionbudgets', 'pods', 
                     'protectionPlans', 'pvcs', 'pvs', 'replicasets', 'resourcequotas',
@@ -2677,7 +2677,7 @@
             } else {
                 text.textContent = 'Orphaned';
                 // Collapse all sections when switching back to all resources
-                const sections = ['applications', 'clusterrolebindings', 'clusterroles', 'configmaps', 'cronjobs',
+                const sections = ['applications', 'applicationsnapshotrestores', 'clusterrolebindings', 'clusterroles', 'configmaps', 'cronjobs',
                     'daemonsets', 'deployments', 'endpoints', 'horizontalpodautoscalers', 'ingresses', 
                     'jobs', 'limitranges', 'namespaces', 'networkpolicies', 'poddisruptionbudgets', 'pods', 
                     'protectionPlans', 'pvcs', 'pvs', 'replicasets', 'resourcequotas',
