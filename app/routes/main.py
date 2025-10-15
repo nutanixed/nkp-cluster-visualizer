@@ -8,6 +8,7 @@ from cluster_api import get_cluster_data, v1, apps_v1
 from kubernetes import client
 
 main_bp = Blueprint('main', __name__)
+rbac_v1 = client.RbacAuthorizationV1Api()
 
 
 @main_bp.route('/')
