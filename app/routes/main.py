@@ -938,7 +938,11 @@ def resources_api():
         # Format Endpoints
         endpoint_list = []
         for ep in endpoints.items:
-            is_orphaned = not ep.metadata.owner_references
+            is_orphaned = not any(
+                svc.metadata.name == ep.metadata.name and 
+                svc.metadata.namespace == ep.metadata.namespace 
+                for svc in services.items
+            )
             pending_deletion = is_pending_deletion(ep)
             
             # Count subsets and addresses
