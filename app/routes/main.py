@@ -845,7 +845,15 @@ def resources_api():
                 ]
                 is_aggregated_to_builtin = any(label in cr.metadata.labels for label in aggregation_labels)
             
-            if is_system or has_aggregation_rule or is_aggregated_to_builtin:
+            is_metrics_or_operator = False
+            if cr.metadata.labels:
+                operator_labels = [
+                    'app.kubernetes.io/managed-by',
+                    'app.kubernetes.io/part-of'
+                ]
+                is_metrics_or_operator = any(label in cr.metadata.labels for label in operator_labels)
+            
+            if is_system or has_aggregation_rule or is_aggregated_to_builtin or is_metrics_or_operator:
                 is_orphaned = False
             
             pending_deletion = is_pending_deletion(cr)
