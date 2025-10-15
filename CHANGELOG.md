@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fixed Field Reference**: Corrected snapshot reference from `spec.snapshotName` to `spec.applicationSnapshotName`
 - **Fixed Expand/Collapse**: Added ApplicationSnapshotRestores to the toggleAllSections array so it properly expands/collapses
 - **Fixed Orphaned Filter**: Added ApplicationSnapshotRestores to the toggleOrphanedFilter function so it properly expands/collapses when filtering
+- **Fixed RBAC Permissions**: Added `applicationsnapshotrestores` resource to ClusterRole for `dataservices.nutanix.com` API group
 
 ### 🔄 Changed
 
@@ -42,6 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated ApplicationSnapshotRestores orphaned badge tooltip (line 2079)
   - Added ApplicationSnapshotRestores to toggleAllSections array (line 2625) - Fixes expand/collapse functionality
   - Added ApplicationSnapshotRestores to toggleOrphanedFilter arrays (lines 2662, 2680) - Fixes orphaned filter expand/collapse
+
+- **RBAC Configuration** (`k8s/clusterrole.yaml`):
+  - Added `applicationsnapshotrestores` to the resources list for `dataservices.nutanix.com` API group (line 131)
+  - Updated version label from v3.3.0 to v3.4.0 (line 9)
+  - Updated ClusterRoleBinding version label to v3.4.0 (`k8s/clusterrolebinding.yaml` line 9)
 
 ### 📊 Impact
 
