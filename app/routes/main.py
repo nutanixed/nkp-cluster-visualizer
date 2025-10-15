@@ -43,14 +43,14 @@ def health_check():
         return jsonify({
             'status': 'healthy',
             'timestamp': datetime.now().isoformat(),
-            'version': '3.3.0'
+            'version': '3.4.0'
         })
     except Exception as e:
         return jsonify({
             'status': 'unhealthy',
             'error': str(e),
             'timestamp': datetime.now().isoformat(),
-            'version': '3.3.0'
+            'version': '3.4.0'
         }), 500
 
 
@@ -308,6 +308,16 @@ def resources_api():
             protection_plans = plans_result.get('items', [])
         except:
             pass
+        
+        try:
+            restores_result = custom_api.list_cluster_custom_object(
+                group='dataservices.nutanix.com',
+                version='v1alpha1',
+                plural='applicationsnapshotrestores'
+            )
+            snapshot_restores = restores_result.get('items', [])
+        except:
+            snapshot_restores = []
         
         # Helper function to check if PVC is orphaned (not used by any pod)
         def is_pvc_orphaned(pvc_name, pvc_namespace):
@@ -605,6 +615,7 @@ def resources_api():
                 'namespace': metadata.get('namespace', ''),
                 'state': state,
                 'age': metadata.get('creationTimestamp', ''),
+                'orphaned': False,  # Applications are never orphaned
                 'pendingDeletion': pending_deletion,
                 'deletionTimestamp': metadata.get('deletionTimestamp'),
                 'finalizers': metadata.get('finalizers', []) if pending_deletion else []
@@ -631,6 +642,7 @@ def resources_api():
                 'namespace': metadata.get('namespace', ''),
                 'state': state,
                 'age': metadata.get('creationTimestamp', ''),
+                'orphaned': False,  # Snapshots are backups and never orphaned
                 'pendingDeletion': pending_deletion,
                 'deletionTimestamp': metadata.get('deletionTimestamp'),
                 'finalizers': metadata.get('finalizers', []) if pending_deletion else []
@@ -648,6 +660,61 @@ def resources_api():
                 'namespace': metadata.get('namespace', ''),
                 'application': spec.get('applicationName', ''),
                 'age': metadata.get('creationTimestamp', ''),
+                'orphaned': False,  # Protection plans are never orphaned
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': metadata.get('deletionTimestamp'),
+                'finalizers': metadata.get('finalizers', []) if pending_deletion else []
+            })
+        
+        # Format ApplicationSnapshotRestores
+        restore_list = []
+        for restore in snapshot_restores:
+            metadata = restore.get('metadata', {})
+            spec = restore.get('spec', {})
+            status = restore.get('status', {})
+            
+            # Determine state based on status.completed and conditions
+            is_completed = status.get('completed', False)
+            conditions = status.get('conditions', [])
+            state = 'Unknown'
+            
+            if is_completed:
+                # Check if it failed or succeeded
+                failed = False
+                for condition in conditions:
+                    if condition.get('type') == 'Failed' and condition.get('status') == 'True':
+                        state = 'Failed'
+                        failed = True
+                        break
+                
+                if not failed:
+                    # Check for ApplicationRestoreFinalised condition
+                    for condition in conditions:
+                        if condition.get('type') == 'ApplicationRestoreFinalised':
+                            if condition.get('status') == 'True':
+                                state = 'Successful'
+                            break
+                    # If no specific condition found but completed is true, assume successful
+                    if state == 'Unknown':
+                        state = 'Successful'
+            else:
+                # Not completed yet, check if progressing
+                for condition in conditions:
+                    if condition.get('type') == 'Progressing' and condition.get('status') == 'True':
+                        state = 'In Progress'
+                        break
+            
+            # Restore is orphaned if it has completed successfully (historical data)
+            is_orphaned = is_completed and state == 'Successful'
+            
+            pending_deletion = is_pending_deletion(restore)
+            restore_list.append({
+                'name': metadata.get('name', ''),
+                'namespace': metadata.get('namespace', ''),
+                'snapshot': spec.get('applicationSnapshotName', ''),  # Fixed: use correct field name
+                'state': state,
+                'age': metadata.get('creationTimestamp', ''),
+                'orphaned': is_orphaned,
                 'pendingDeletion': pending_deletion,
                 'deletionTimestamp': metadata.get('deletionTimestamp'),
                 'finalizers': metadata.get('finalizers', []) if pending_deletion else []
@@ -1373,6 +1440,7 @@ def resources_api():
 
         return jsonify({
             'applications': application_list,
+            'applicationsnapshotrestores': restore_list,
             'clusterrolebindings': clusterrolebinding_list,
             'clusterroles': clusterrole_list,
             'configmaps': configmap_list,

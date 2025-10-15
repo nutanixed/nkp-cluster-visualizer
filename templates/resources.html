@@ -663,6 +663,30 @@
                     </div>
                 </div>
 
+                <!-- ApplicationSnapshotRestores -->
+                <div class="resource-section" id="applicationsnapshotrestoresSection"><div class="section-header" onclick="toggleSection('applicationsnapshotrestores')">
+                        <div class="section-title">
+                            <span>ApplicationSnapshotRestores</span>
+                            <span class="section-count" id="applicationsnapshotrestoresCount">0</span>
+                        </div>
+                        <span class="toggle-icon" id="applicationsnapshotrestoresToggle">▼</span>
+                    </div>
+                    <div class="table-container" id="applicationsnapshotrestoresTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Snapshot</th>
+                                    <th>State</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applicationsnapshotrestoresBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- ClusterRoleBindings -->
                 <div class="resource-section" id="clusterrolebindingsSection"><div class="section-header" onclick="toggleSection('clusterrolebindings')">
                         <div class="section-title">
@@ -1434,6 +1458,7 @@
             // Track which sections have matching results
             const sectionsWithResults = new Set();
             renderApplications();
+            renderApplicationSnapshotRestores();
             renderClusterRoleBindings();
             renderClusterRoles();
             renderConfigMaps();
@@ -1468,7 +1493,7 @@
             // Hide sections with no matching results when searching or filtering orphaned
             if (searchTerm || orphanedOnly) {
                 const sections = [
-                    'applications', 'clusterrolebindings', 'clusterroles', 'configmaps', 'cronjobs',
+                    'applications', 'applicationsnapshotrestores', 'clusterrolebindings', 'clusterroles', 'configmaps', 'cronjobs',
                     'daemonsets', 'deployments', 'endpoints', 'horizontalpodautoscalers', 'ingresses', 
                     'jobs', 'limitranges', 'namespaces', 'networkpolicies', 'poddisruptionbudgets', 'pods', 
                     'protectionPlans', 'pvcs', 'pvs', 'replicasets', 'resourcequotas',
@@ -1491,7 +1516,7 @@
             } else {
                 // Show all sections when not searching or filtering
                 const sections = [
-                    'applications', 'clusterrolebindings', 'clusterroles', 'configmaps', 'cronjobs',
+                    'applications', 'applicationsnapshotrestores', 'clusterrolebindings', 'clusterroles', 'configmaps', 'cronjobs',
                     'daemonsets', 'deployments', 'endpoints', 'horizontalpodautoscalers', 'ingresses', 
                     'jobs', 'limitranges', 'namespaces', 'networkpolicies', 'poddisruptionbudgets', 'pods', 
                     'protectionPlans', 'pvcs', 'pvs', 'replicasets', 'resourcequotas',
@@ -2035,6 +2060,31 @@
             `).join('');
         }
 
+        function renderApplicationSnapshotRestores() {
+            const restores = filterResources(allResources.applicationsnapshotrestores || []);
+            const tbody = document.getElementById('applicationsnapshotrestoresBody');
+            document.getElementById('applicationsnapshotrestoresCount').textContent = restores.length;
+            
+            if (restores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No application snapshot restores found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = restores.map(r => `
+                <tr class="${r.pendingDeletion ? 'pending-deletion-row' : (r.orphaned ? 'orphaned-row' : '')}">
+                    <td>
+                        <strong>${r.name}</strong>
+                        ${r.pendingDeletion ? '<span class="pending-deletion-badge" title="Stuck in deletion. Finalizers: ' + (r.finalizers || []).join(', ') + '">⏳ Pending Deletion</span>' : ''}
+                        ${!r.pendingDeletion && r.orphaned ? '<span class="orphaned-badge" title="Restore completed successfully - historical data">⚠️ Orphaned</span>' : ''}
+                    </td>
+                    <td>${r.namespace}</td>
+                    <td>${r.snapshot}</td>
+                    <td><span class="status-badge ${getStatusClass(r.state)}">${r.state}</span></td>
+                    <td>${formatAge(r.age)}</td>
+                </tr>
+            `).join('');
+        }
+
         function renderSnapshots() {
             const snapshots = filterResources(allResources.snapshots || []);
             const tbody = document.getElementById('snapshotsBody');
@@ -2572,7 +2622,7 @@
         }
 
         function toggleAllSections() {
-            const sections = ['applications', 'clusterrolebindings', 'clusterroles', 'configmaps', 'cronjobs', 'daemonsets', 'deployments', 'endpoints', 'horizontalpodautoscalers', 'ingresses', 'jobs', 'limitranges', 'namespaces', 'networkpolicies', 'poddisruptionbudgets', 'pods', 'protectionPlans', 'pvcs', 'pvs', 'replicasets', 'resourcequotas', 'rolebindings', 'roles', 'secrets', 'serviceaccounts', 'services', 'snapshots', 'statefulsets', 'storageclasses', 'volumesnapshotcontents', 'volumesnapshots'];
+            const sections = ['applications', 'applicationsnapshotrestores', 'clusterrolebindings', 'clusterroles', 'configmaps', 'cronjobs', 'daemonsets', 'deployments', 'endpoints', 'horizontalpodautoscalers', 'ingresses', 'jobs', 'limitranges', 'namespaces', 'networkpolicies', 'poddisruptionbudgets', 'pods', 'protectionPlans', 'pvcs', 'pvs', 'replicasets', 'resourcequotas', 'rolebindings', 'roles', 'secrets', 'serviceaccounts', 'services', 'snapshots', 'statefulsets', 'storageclasses', 'volumesnapshotcontents', 'volumesnapshots'];
             const toggleAllText = document.getElementById('toggleAllText');
             
             // Check if any section is expanded

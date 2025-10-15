@@ -5,6 +5,61 @@ All notable changes to the NKP Cluster Visualizer project will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2025-01-15
+
+### 🐛 Fixed
+
+#### NKD Resource Orphan Detection Logic
+- **Removed Incorrect Orphan Detection**: Removed inappropriate orphan detection logic for NKD resources
+  - **Applications**: No longer marked as orphaned (they are primary resources)
+  - **ApplicationSnapshots**: No longer marked as orphaned (they are backups meant to persist)
+  - **AppProtectionPlans**: No longer marked as orphaned (they are configuration resources)
+  
+#### ApplicationSnapshotRestore Improvements
+- **Fixed State Detection**: ApplicationSnapshotRestores now correctly display their state
+  - Changed from checking non-existent `Complete` condition to using `status.completed` field
+  - Now properly checks `ApplicationRestoreFinalised` condition for successful completion
+  - States now correctly show: "Successful", "Failed", "In Progress", or "Unknown" (previously all showed "Unknown")
+- **Corrected Orphan Logic**: Restores are now marked as orphaned only when completed successfully
+  - Orphaned restores represent historical data that can be safely cleaned up
+  - Updated tooltip to "Restore completed successfully - historical data"
+- **Fixed Field Reference**: Corrected snapshot reference from `spec.snapshotName` to `spec.applicationSnapshotName`
+- **Fixed Expand/Collapse**: Added ApplicationSnapshotRestores to the toggleAllSections array so it properly expands/collapses
+
+### 🔄 Changed
+
+- **Backend Data Processing** (`app/routes/main.py`):
+  - Simplified Applications orphan detection (lines 612-622) - Always returns `orphaned: False`
+  - Simplified ApplicationSnapshots orphan detection (lines 639-649) - Always returns `orphaned: False`
+  - Simplified AppProtectionPlans orphan detection (lines 657-667) - Always returns `orphaned: False`
+  - Enhanced ApplicationSnapshotRestores state detection (lines 669-721) - Now uses proper status fields and conditions
+  
+- **Frontend Display** (`templates/resources.html`):
+  - Removed orphaned styling and badges from Applications (line 2051)
+  - Removed orphaned styling and badges from ApplicationSnapshots (line 2099)
+  - Removed orphaned styling and badges from AppProtectionPlans (line 2122)
+  - Updated ApplicationSnapshotRestores orphaned badge tooltip (line 2079)
+  - Added ApplicationSnapshotRestores to toggleAllSections array (line 2625) - Fixes expand/collapse functionality
+
+### 📊 Impact
+
+- **Accurate State Reporting**: ApplicationSnapshotRestores now show correct completion status
+- **Reduced False Positives**: Eliminated incorrect orphan detection for NKD primary resources
+- **Better Resource Management**: Only completed restores (historical data) are marked as orphaned
+- **Clearer User Experience**: Orphaned badges now only appear where they make logical sense
+
+### 🔧 Technical Details
+
+- Modified `app/routes/main.py` - Fixed NKD resource orphan detection logic (lines 595-721)
+- Modified `templates/resources.html` - Updated rendering functions for all four NKD resource types (lines 2040-2133)
+- ApplicationSnapshotRestore state detection now properly handles:
+  - `status.completed` boolean field
+  - `ApplicationRestoreFinalised` condition for success
+  - `Failed` condition for failures
+  - `Progressing` condition for in-progress restores
+
+---
+
 ## [3.3.0] - 2025-10-15
 
 ### ✨ New Features
