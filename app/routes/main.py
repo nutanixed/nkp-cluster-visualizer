@@ -835,7 +835,17 @@ def resources_api():
             
             has_aggregation_rule = hasattr(cr, 'aggregation_rule') and cr.aggregation_rule is not None
             
-            if is_system or has_aggregation_rule:
+            is_aggregated_to_builtin = False
+            if cr.metadata.labels:
+                aggregation_labels = [
+                    'rbac.authorization.k8s.io/aggregate-to-admin',
+                    'rbac.authorization.k8s.io/aggregate-to-edit',
+                    'rbac.authorization.k8s.io/aggregate-to-view',
+                    'rbac.authorization.k8s.io/aggregate-to-cluster-reader'
+                ]
+                is_aggregated_to_builtin = any(label in cr.metadata.labels for label in aggregation_labels)
+            
+            if is_system or has_aggregation_rule or is_aggregated_to_builtin:
                 is_orphaned = False
             
             pending_deletion = is_pending_deletion(cr)
