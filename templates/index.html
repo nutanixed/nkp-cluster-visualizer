@@ -69,7 +69,7 @@
         
         /* ===== HEADER (KEEP SAME) ===== */
         .header {
-            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            background: var(--brand-primary);
             color: white;
             padding: 2rem;
             position: relative;
@@ -321,12 +321,12 @@
         
         .metric-icon {
             width: 40px;
-            height: 40px;
+            height: 36px;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            font-size: 1.125rem;
             font-weight: 700;
         }
         
@@ -990,12 +990,72 @@
         }
         
         .replica-value {
-            font-size: 1.25rem;
+            font-size: 1.125rem;
             font-weight: 700;
             color: var(--brand-primary);
             min-width: 40px;
             text-align: center;
         }
+        
+                
+        .replica-input {
+            width: 60px;
+            height: 36px;
+            border: 2px solid var(--border-medium);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 10px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 0 8px;
+            transition: all 0.2s;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .replica-input::-webkit-inner-spin-button,
+        .replica-input::-webkit-outer-spin-button {
+            opacity: 1;
+            height: 34px;
+            cursor: pointer;
+        }
+        
+        .replica-input:hover {
+            border-color: var(--brand-primary);
+        }
+        
+        .replica-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .scale-commit-btn {
+            height: 36px;
+            padding: 0 1.25rem;
+            border: none;
+            background: var(--brand-primary);
+            color: white;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .scale-commit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+        
+        .scale-commit-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+        }
+
         
         .scale-btn {
             width: 36px;
@@ -1004,7 +1064,7 @@
             background: var(--bg-secondary);
             color: var(--brand-primary);
             border-radius: 8px;
-            font-size: 1.25rem;
+            font-size: 1.125rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
@@ -1378,7 +1438,7 @@
         }
         
         .modal-title {
-            font-size: 1.25rem;
+            font-size: 1.125rem;
             font-weight: 700;
             margin-bottom: 1rem;
             color: var(--text-primary);
@@ -1463,7 +1523,7 @@
         }
         
         .notification.loading {
-            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            background: var(--brand-primary);
             animation: pulse 2s ease-in-out infinite;
         }
         
@@ -1495,7 +1555,7 @@
         
         .spinner {
             width: 40px;
-            height: 40px;
+            height: 36px;
             border: 4px solid var(--border-light);
             border-top-color: var(--brand-primary);
             border-radius: 50%;
@@ -2146,9 +2206,8 @@
                         </div>
                         <div class="replica-controls" id="replica-controls-${app.namespace}-${app.name}">
                             <span class="replica-label">Replicas:</span>
-                            <button class="scale-btn" onclick="scaleReplicas('${app.namespace}', '${app.name}', '${app.type}', ${app.replicas - 1})" ${app.replicas <= 0 ? 'disabled' : ''}>−</button>
-                            <span class="replica-value">${app.replicas}</span>
-                            <button class="scale-btn" onclick="scaleReplicas('${app.namespace}', '${app.name}', '${app.type}', ${app.replicas + 1})">+</button>
+                            <input type="number" class="replica-input" id="replica-input-${app.namespace}-${app.name}" value="${app.replicas}" min="0" max="100" />
+                            <button class="scale-commit-btn" onclick="scaleReplicas('${app.namespace}', '${app.name}', '${app.type}', parseInt(this.previousElementSibling.value))">Set</button>
                             <div class="scaling-indicator">
                                 <div class="scaling-indicator-spinner"></div>
                                 <span>Scaling...</span>

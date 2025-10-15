@@ -5,6 +5,77 @@ All notable changes to the NKP Cluster Visualizer project will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2025-10-15
+
+### ✨ New Features
+
+#### Expanded Resource Coverage
+- **30+ Kubernetes Resource Types**: Added comprehensive support for additional resource types
+  - **ClusterRoles**: View cluster-wide roles with rule counts and orphan detection
+  - **ClusterRoleBindings**: View cluster role bindings with subject information
+  - **Roles**: View namespace-scoped roles with rule counts
+  - **RoleBindings**: View role bindings with subject information
+  - **CronJobs**: View scheduled jobs with schedule, suspend status, and last run time
+  - **Jobs**: View batch jobs with completion status and failure counts
+  - **DaemonSets**: View daemon sets with desired/current/ready pod counts
+  - **Ingresses**: View ingress resources with class, hosts, and routing information
+  - **NetworkPolicies**: View network policies with ingress/egress rule counts
+  - **PodDisruptionBudgets**: View PDBs with min/max available settings
+  - **HorizontalPodAutoscalers**: View HPAs with target resource, min/max replicas, and current metrics
+  - **Endpoints**: View service endpoints with address and port information
+  - **StorageClasses**: View storage classes with provisioner, reclaim policy, and binding mode
+  - **LimitRanges**: View limit ranges with constraint counts
+  - **ResourceQuotas**: View resource quotas with hard limit information
+  - **VolumeSnapshotContents**: View volume snapshot contents with snapshot references
+  - **VolumeSnapshots**: View volume snapshots with source PVC and ready status
+
+#### Enhanced Orphan Detection
+- **Advanced RBAC Orphan Detection**: Comprehensive orphan detection for RBAC resources
+  - ClusterRoles checked against ClusterRoleBindings and RoleBindings
+  - ClusterRoleBindings checked for empty subjects and non-existent role references
+  - Roles checked against RoleBindings within their namespace
+  - RoleBindings checked for empty subjects and non-existent role references
+  - System resources (prefixed with `system:` or `cluster-`) automatically excluded from orphan detection
+
+#### Improved UI/UX
+- **Orphaned Resource Filter**: New toggle button to filter and view only orphaned resources
+  - Automatically expands all sections when filtering by orphaned resources
+  - Collapses all sections when switching back to all resources view
+  - Makes it easy to identify and clean up unused resources
+- **Enhanced Resource Display**: Better formatting for complex resource types
+  - Subject information for role bindings (ServiceAccount, User, Group)
+  - Schedule and status information for CronJobs
+  - Completion and failure metrics for Jobs
+  - Host and routing information for Ingresses
+  - Metric information for HorizontalPodAutoscalers
+
+### 🔄 Changed
+
+- **Resource List Expansion**: Updated toggle functions to support all 30+ resource types
+  - `toggleAllSections()` now handles complete resource list
+  - `toggleOrphanedFilter()` expands/collapses all resource sections appropriately
+- **Backend Data Processing**: Enhanced `get_orphaned_resources()` to collect and format all new resource types
+  - Added comprehensive data collection for all Kubernetes API groups
+  - Improved error handling for optional API resources
+  - Better age formatting and metadata extraction
+
+### 📊 Impact
+
+- **Complete Cluster Visibility**: View virtually all Kubernetes resources in one place
+- **Improved Resource Management**: Easier identification of orphaned resources across all types
+- **Better Troubleshooting**: Comprehensive view helps identify configuration issues
+- **Enhanced Cleanup**: Orphaned filter makes it easy to find and remove unused resources
+
+### 🔧 Technical Details
+
+- Modified `app/routes/main.py` - Added data collection for 17 new resource types
+- Modified `templates/index.html` - Added render functions for all new resource types
+- Modified `templates/resources.html` - Added tables and display logic for all new resource types
+- Enhanced orphan detection logic for RBAC resources with cross-reference checking
+- Added support for Kubernetes API groups: `batch/v1`, `networking.k8s.io/v1`, `policy/v1`, `autoscaling/v2`, `storage.k8s.io/v1`, `snapshot.storage.k8s.io/v1`
+
+---
+
 ## [3.2.0] - 2025-01-09
 
 ### ✨ New Features

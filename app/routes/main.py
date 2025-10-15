@@ -30,12 +30,387 @@ def health_check():
     try:
         # Simple health check - try to connect to Kubernetes API
         v1.list_node(limit=1)
+        
+        # Format ClusterRoles
+        clusterrole_list = []
+        cluster_roles = []
+        try:
+            cluster_roles = rbac_v1.list_cluster_role().items
+        except:
+            pass
+        
+        for cr in cluster_roles:
+            # Check if orphaned (not referenced by any ClusterRoleBinding or RoleBinding)
+            is_orphaned = True
+            
+            # Check ClusterRoleBindings
+            for crb in cluster_role_bindings:
+                if crb.role_ref and crb.role_ref.kind == 'ClusterRole' and crb.role_ref.name == cr.metadata.name:
+                    is_orphaned = False
+                    break
+            
+            # Check RoleBindings (can also reference ClusterRoles)
+            if is_orphaned:
+                for rb in role_bindings:
+                    if rb.role_ref and rb.role_ref.kind == 'ClusterRole' and rb.role_ref.name == cr.metadata.name:
+                        is_orphaned = False
+                        break
+            
+            # System ClusterRoles are not orphaned
+            is_system = cr.metadata.name.startswith('system:') or cr.metadata.name.startswith('cluster-')
+            if is_system:
+                is_orphaned = False
+            
+            pending_deletion = is_pending_deletion(cr)
+            
+            # Count rules
+            rules_count = len(cr.rules) if cr.rules else 0
+            
+            clusterrole_list.append({
+                'name': cr.metadata.name,
+                'rules': rules_count,
+                'age': cr.metadata.creation_timestamp.isoformat() if cr.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': cr.metadata.deletion_timestamp.isoformat() if pending_deletion and cr.metadata.deletion_timestamp else None,
+                'finalizers': cr.metadata.finalizers if pending_deletion and cr.metadata.finalizers else []
+            })
+        
+        # Format ClusterRoleBindings
+        clusterrolebinding_list = []
+        for crb in cluster_role_bindings:
+            # Check if orphaned (no subjects or role doesn't exist)
+            is_orphaned = not crb.subjects or len(crb.subjects) == 0
+            
+            # Check if the referenced ClusterRole exists
+            if not is_orphaned and crb.role_ref:
+                role_exists = any(cr.metadata.name == crb.role_ref.name for cr in cluster_roles)
+                if not role_exists:
+                    is_orphaned = True
+            
+            pending_deletion = is_pending_deletion(crb)
+            
+            # Get role name and subjects
+            role_name = crb.role_ref.name if crb.role_ref else 'Unknown'
+            subjects_count = len(crb.subjects) if crb.subjects else 0
+            
+            # Get first subject for display
+            first_subject = ''
+            if crb.subjects and len(crb.subjects) > 0:
+                subj = crb.subjects[0]
+                if subj.kind == 'ServiceAccount':
+                    first_subject = f"{subj.kind}:{subj.namespace}/{subj.name}" if subj.namespace else f"{subj.kind}:{subj.name}"
+                else:
+                    first_subject = f"{subj.kind}:{subj.name}"
+                if subjects_count > 1:
+                    first_subject += f" (+{subjects_count - 1} more)"
+            
+            clusterrolebinding_list.append({
+                'name': crb.metadata.name,
+                'role': role_name,
+                'subjects': first_subject,
+                'subjectsCount': subjects_count,
+                'age': crb.metadata.creation_timestamp.isoformat() if crb.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': crb.metadata.deletion_timestamp.isoformat() if pending_deletion and crb.metadata.deletion_timestamp else None,
+                'finalizers': crb.metadata.finalizers if pending_deletion and crb.metadata.finalizers else []
+            })
+
+        # Format CronJobs
+        cronjob_list = []
+        for cj in cronjobs.items:
+            is_orphaned = False
+            pending_deletion = is_pending_deletion(cj)
+            
+            schedule = cj.spec.schedule if cj.spec.schedule else 'Unknown'
+            suspend = cj.spec.suspend if cj.spec.suspend else False
+            last_schedule = cj.status.last_schedule_time.isoformat() if cj.status.last_schedule_time else 'Never'
+            
+            cronjob_list.append({
+                'name': cj.metadata.name,
+                'namespace': cj.metadata.namespace,
+                'schedule': schedule,
+                'suspend': suspend,
+                'lastSchedule': last_schedule,
+                'age': cj.metadata.creation_timestamp.isoformat() if cj.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': cj.metadata.deletion_timestamp.isoformat() if pending_deletion and cj.metadata.deletion_timestamp else None,
+                'finalizers': cj.metadata.finalizers if pending_deletion and cj.metadata.finalizers else []
+            })
+        
+        # Format DaemonSets
+        daemonset_list = []
+        for ds in daemonsets.items:
+            is_orphaned = not ds.metadata.owner_references
+            pending_deletion = is_pending_deletion(ds)
+            
+            desired = ds.status.desired_number_scheduled or 0
+            current = ds.status.current_number_scheduled or 0
+            ready = ds.status.number_ready or 0
+            
+            daemonset_list.append({
+                'name': ds.metadata.name,
+                'namespace': ds.metadata.namespace,
+                'desired': desired,
+                'current': current,
+                'ready': ready,
+                'age': ds.metadata.creation_timestamp.isoformat() if ds.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': ds.metadata.deletion_timestamp.isoformat() if pending_deletion and ds.metadata.deletion_timestamp else None,
+                'finalizers': ds.metadata.finalizers if pending_deletion and ds.metadata.finalizers else []
+            })
+        
+        # Format Ingresses
+        ingress_list = []
+        for ing in ingresses.items:
+            is_orphaned = not ing.metadata.owner_references
+            pending_deletion = is_pending_deletion(ing)
+            
+            ingress_class = ing.spec.ingress_class_name if ing.spec.ingress_class_name else 'default'
+            
+            hosts = []
+            if ing.spec.rules:
+                for rule in ing.spec.rules:
+                    if rule.host:
+                        hosts.append(rule.host)
+            hosts_str = ', '.join(hosts) if hosts else '*'
+            
+            ingress_list.append({
+                'name': ing.metadata.name,
+                'namespace': ing.metadata.namespace,
+                'class': ingress_class,
+                'hosts': hosts_str,
+                'age': ing.metadata.creation_timestamp.isoformat() if ing.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': ing.metadata.deletion_timestamp.isoformat() if pending_deletion and ing.metadata.deletion_timestamp else None,
+                'finalizers': ing.metadata.finalizers if pending_deletion and ing.metadata.finalizers else []
+            })
+        
+        # Format Jobs
+        job_list = []
+        for job in jobs.items:
+            is_orphaned = not job.metadata.owner_references
+            pending_deletion = is_pending_deletion(job)
+            
+            completions = job.spec.completions or 1
+            succeeded = job.status.succeeded or 0
+            failed = job.status.failed or 0
+            
+            job_list.append({
+                'name': job.metadata.name,
+                'namespace': job.metadata.namespace,
+                'completions': f"{succeeded}/{completions}",
+                'failed': failed,
+                'age': job.metadata.creation_timestamp.isoformat() if job.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': job.metadata.deletion_timestamp.isoformat() if pending_deletion and job.metadata.deletion_timestamp else None,
+                'finalizers': job.metadata.finalizers if pending_deletion and job.metadata.finalizers else []
+            })
+        
+        # Format NetworkPolicies
+        networkpolicy_list = []
+        for np in networkpolicies.items:
+            is_orphaned = not np.metadata.owner_references
+            pending_deletion = is_pending_deletion(np)
+            
+            ingress_count = len(np.spec.ingress) if np.spec.ingress else 0
+            egress_count = len(np.spec.egress) if np.spec.egress else 0
+            
+            networkpolicy_list.append({
+                'name': np.metadata.name,
+                'namespace': np.metadata.namespace,
+                'ingress': ingress_count,
+                'egress': egress_count,
+                'age': np.metadata.creation_timestamp.isoformat() if np.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': np.metadata.deletion_timestamp.isoformat() if pending_deletion and np.metadata.deletion_timestamp else None,
+                'finalizers': np.metadata.finalizers if pending_deletion and np.metadata.finalizers else []
+            })
+        
+        # Format Roles
+        role_list = []
+        for role in roles.items:
+            is_orphaned = True
+            for rb in rolebindings.items:
+                if rb.role_ref and rb.role_ref.kind == 'Role' and rb.role_ref.name == role.metadata.name and rb.metadata.namespace == role.metadata.namespace:
+                    is_orphaned = False
+                    break
+            
+            pending_deletion = is_pending_deletion(role)
+            rules_count = len(role.rules) if role.rules else 0
+            
+            role_list.append({
+                'name': role.metadata.name,
+                'namespace': role.metadata.namespace,
+                'rules': rules_count,
+                'age': role.metadata.creation_timestamp.isoformat() if role.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': role.metadata.deletion_timestamp.isoformat() if pending_deletion and role.metadata.deletion_timestamp else None,
+                'finalizers': role.metadata.finalizers if pending_deletion and role.metadata.finalizers else []
+            })
+        
+        # Format RoleBindings
+        rolebinding_list = []
+        for rb in rolebindings.items:
+            is_orphaned = not rb.subjects or len(rb.subjects) == 0
+            
+            if not is_orphaned and rb.role_ref:
+                if rb.role_ref.kind == 'Role':
+                    role_exists = any(r.metadata.name == rb.role_ref.name and r.metadata.namespace == rb.metadata.namespace for r in roles.items)
+                    if not role_exists:
+                        is_orphaned = True
+            
+            pending_deletion = is_pending_deletion(rb)
+            
+            role_name = rb.role_ref.name if rb.role_ref else 'Unknown'
+            role_kind = rb.role_ref.kind if rb.role_ref else 'Unknown'
+            subjects_count = len(rb.subjects) if rb.subjects else 0
+            
+            first_subject = ''
+            if rb.subjects and len(rb.subjects) > 0:
+                subj = rb.subjects[0]
+                if subj.kind == 'ServiceAccount':
+                    first_subject = f"{subj.kind}:{subj.namespace}/{subj.name}" if subj.namespace else f"{subj.kind}:{subj.name}"
+                else:
+                    first_subject = f"{subj.kind}:{subj.name}"
+                if subjects_count > 1:
+                    first_subject += f" (+{subjects_count - 1} more)"
+            
+            rolebinding_list.append({
+                'name': rb.metadata.name,
+                'namespace': rb.metadata.namespace,
+                'role': role_name,
+                'roleKind': role_kind,
+                'subjects': first_subject,
+                'subjectsCount': subjects_count,
+                'age': rb.metadata.creation_timestamp.isoformat() if rb.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': rb.metadata.deletion_timestamp.isoformat() if pending_deletion and rb.metadata.deletion_timestamp else None,
+                'finalizers': rb.metadata.finalizers if pending_deletion and rb.metadata.finalizers else []
+            })
+        
+        # Format StorageClasses
+        storageclass_list = []
+        for sc in storageclasses.items:
+            is_orphaned = False
+            pending_deletion = is_pending_deletion(sc)
+            
+            provisioner = sc.provisioner if sc.provisioner else 'Unknown'
+            reclaim_policy = sc.reclaim_policy if sc.reclaim_policy else 'Delete'
+            volume_binding_mode = sc.volume_binding_mode if sc.volume_binding_mode else 'Immediate'
+            
+            storageclass_list.append({
+                'name': sc.metadata.name,
+                'provisioner': provisioner,
+                'reclaimPolicy': reclaim_policy,
+                'volumeBindingMode': volume_binding_mode,
+                'age': sc.metadata.creation_timestamp.isoformat() if sc.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': sc.metadata.deletion_timestamp.isoformat() if pending_deletion and sc.metadata.deletion_timestamp else None,
+                'finalizers': sc.metadata.finalizers if pending_deletion and sc.metadata.finalizers else []
+            })
+
         return jsonify({
             'status': 'healthy',
             'timestamp': datetime.now().isoformat(),
             'version': '3.0.0'
         })
     except Exception as e:
+        
+        # Format ClusterRoles
+        clusterrole_list = []
+        cluster_roles = []
+        try:
+            cluster_roles = rbac_v1.list_cluster_role().items
+        except:
+            pass
+        
+        for cr in cluster_roles:
+            # Check if orphaned (not referenced by any ClusterRoleBinding or RoleBinding)
+            is_orphaned = True
+            
+            # Check ClusterRoleBindings
+            for crb in cluster_role_bindings:
+                if crb.role_ref and crb.role_ref.kind == 'ClusterRole' and crb.role_ref.name == cr.metadata.name:
+                    is_orphaned = False
+                    break
+            
+            # Check RoleBindings (can also reference ClusterRoles)
+            if is_orphaned:
+                for rb in role_bindings:
+                    if rb.role_ref and rb.role_ref.kind == 'ClusterRole' and rb.role_ref.name == cr.metadata.name:
+                        is_orphaned = False
+                        break
+            
+            # System ClusterRoles are not orphaned
+            is_system = cr.metadata.name.startswith('system:') or cr.metadata.name.startswith('cluster-')
+            if is_system:
+                is_orphaned = False
+            
+            pending_deletion = is_pending_deletion(cr)
+            
+            # Count rules
+            rules_count = len(cr.rules) if cr.rules else 0
+            
+            clusterrole_list.append({
+                'name': cr.metadata.name,
+                'rules': rules_count,
+                'age': cr.metadata.creation_timestamp.isoformat() if cr.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': cr.metadata.deletion_timestamp.isoformat() if pending_deletion and cr.metadata.deletion_timestamp else None,
+                'finalizers': cr.metadata.finalizers if pending_deletion and cr.metadata.finalizers else []
+            })
+        
+        # Format ClusterRoleBindings
+        clusterrolebinding_list = []
+        for crb in cluster_role_bindings:
+            # Check if orphaned (no subjects or role doesn't exist)
+            is_orphaned = not crb.subjects or len(crb.subjects) == 0
+            
+            # Check if the referenced ClusterRole exists
+            if not is_orphaned and crb.role_ref:
+                role_exists = any(cr.metadata.name == crb.role_ref.name for cr in cluster_roles)
+                if not role_exists:
+                    is_orphaned = True
+            
+            pending_deletion = is_pending_deletion(crb)
+            
+            # Get role name and subjects
+            role_name = crb.role_ref.name if crb.role_ref else 'Unknown'
+            subjects_count = len(crb.subjects) if crb.subjects else 0
+            
+            # Get first subject for display
+            first_subject = ''
+            if crb.subjects and len(crb.subjects) > 0:
+                subj = crb.subjects[0]
+                if subj.kind == 'ServiceAccount':
+                    first_subject = f"{subj.kind}:{subj.namespace}/{subj.name}" if subj.namespace else f"{subj.kind}:{subj.name}"
+                else:
+                    first_subject = f"{subj.kind}:{subj.name}"
+                if subjects_count > 1:
+                    first_subject += f" (+{subjects_count - 1} more)"
+            
+            clusterrolebinding_list.append({
+                'name': crb.metadata.name,
+                'role': role_name,
+                'subjects': first_subject,
+                'subjectsCount': subjects_count,
+                'age': crb.metadata.creation_timestamp.isoformat() if crb.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': crb.metadata.deletion_timestamp.isoformat() if pending_deletion and crb.metadata.deletion_timestamp else None,
+                'finalizers': crb.metadata.finalizers if pending_deletion and crb.metadata.finalizers else []
+            })
         return jsonify({
             'status': 'unhealthy',
             'error': str(e),
@@ -50,6 +425,92 @@ def refresh_data():
     """Force refresh cluster data"""
     try:
         data = get_cluster_data()
+        
+        # Format ClusterRoles
+        clusterrole_list = []
+        cluster_roles = []
+        try:
+            cluster_roles = rbac_v1.list_cluster_role().items
+        except:
+            pass
+        
+        for cr in cluster_roles:
+            # Check if orphaned (not referenced by any ClusterRoleBinding or RoleBinding)
+            is_orphaned = True
+            
+            # Check ClusterRoleBindings
+            for crb in cluster_role_bindings:
+                if crb.role_ref and crb.role_ref.kind == 'ClusterRole' and crb.role_ref.name == cr.metadata.name:
+                    is_orphaned = False
+                    break
+            
+            # Check RoleBindings (can also reference ClusterRoles)
+            if is_orphaned:
+                for rb in role_bindings:
+                    if rb.role_ref and rb.role_ref.kind == 'ClusterRole' and rb.role_ref.name == cr.metadata.name:
+                        is_orphaned = False
+                        break
+            
+            # System ClusterRoles are not orphaned
+            is_system = cr.metadata.name.startswith('system:') or cr.metadata.name.startswith('cluster-')
+            if is_system:
+                is_orphaned = False
+            
+            pending_deletion = is_pending_deletion(cr)
+            
+            # Count rules
+            rules_count = len(cr.rules) if cr.rules else 0
+            
+            clusterrole_list.append({
+                'name': cr.metadata.name,
+                'rules': rules_count,
+                'age': cr.metadata.creation_timestamp.isoformat() if cr.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': cr.metadata.deletion_timestamp.isoformat() if pending_deletion and cr.metadata.deletion_timestamp else None,
+                'finalizers': cr.metadata.finalizers if pending_deletion and cr.metadata.finalizers else []
+            })
+        
+        # Format ClusterRoleBindings
+        clusterrolebinding_list = []
+        for crb in cluster_role_bindings:
+            # Check if orphaned (no subjects or role doesn't exist)
+            is_orphaned = not crb.subjects or len(crb.subjects) == 0
+            
+            # Check if the referenced ClusterRole exists
+            if not is_orphaned and crb.role_ref:
+                role_exists = any(cr.metadata.name == crb.role_ref.name for cr in cluster_roles)
+                if not role_exists:
+                    is_orphaned = True
+            
+            pending_deletion = is_pending_deletion(crb)
+            
+            # Get role name and subjects
+            role_name = crb.role_ref.name if crb.role_ref else 'Unknown'
+            subjects_count = len(crb.subjects) if crb.subjects else 0
+            
+            # Get first subject for display
+            first_subject = ''
+            if crb.subjects and len(crb.subjects) > 0:
+                subj = crb.subjects[0]
+                if subj.kind == 'ServiceAccount':
+                    first_subject = f"{subj.kind}:{subj.namespace}/{subj.name}" if subj.namespace else f"{subj.kind}:{subj.name}"
+                else:
+                    first_subject = f"{subj.kind}:{subj.name}"
+                if subjects_count > 1:
+                    first_subject += f" (+{subjects_count - 1} more)"
+            
+            clusterrolebinding_list.append({
+                'name': crb.metadata.name,
+                'role': role_name,
+                'subjects': first_subject,
+                'subjectsCount': subjects_count,
+                'age': crb.metadata.creation_timestamp.isoformat() if crb.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': crb.metadata.deletion_timestamp.isoformat() if pending_deletion and crb.metadata.deletion_timestamp else None,
+                'finalizers': crb.metadata.finalizers if pending_deletion and crb.metadata.finalizers else []
+            })
         return jsonify({
             'status': 'success',
             'message': 'Data refreshed successfully',
@@ -58,6 +519,92 @@ def refresh_data():
             'pods': data.get('total_pods', 0)
         })
     except Exception as e:
+        
+        # Format ClusterRoles
+        clusterrole_list = []
+        cluster_roles = []
+        try:
+            cluster_roles = rbac_v1.list_cluster_role().items
+        except:
+            pass
+        
+        for cr in cluster_roles:
+            # Check if orphaned (not referenced by any ClusterRoleBinding or RoleBinding)
+            is_orphaned = True
+            
+            # Check ClusterRoleBindings
+            for crb in cluster_role_bindings:
+                if crb.role_ref and crb.role_ref.kind == 'ClusterRole' and crb.role_ref.name == cr.metadata.name:
+                    is_orphaned = False
+                    break
+            
+            # Check RoleBindings (can also reference ClusterRoles)
+            if is_orphaned:
+                for rb in role_bindings:
+                    if rb.role_ref and rb.role_ref.kind == 'ClusterRole' and rb.role_ref.name == cr.metadata.name:
+                        is_orphaned = False
+                        break
+            
+            # System ClusterRoles are not orphaned
+            is_system = cr.metadata.name.startswith('system:') or cr.metadata.name.startswith('cluster-')
+            if is_system:
+                is_orphaned = False
+            
+            pending_deletion = is_pending_deletion(cr)
+            
+            # Count rules
+            rules_count = len(cr.rules) if cr.rules else 0
+            
+            clusterrole_list.append({
+                'name': cr.metadata.name,
+                'rules': rules_count,
+                'age': cr.metadata.creation_timestamp.isoformat() if cr.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': cr.metadata.deletion_timestamp.isoformat() if pending_deletion and cr.metadata.deletion_timestamp else None,
+                'finalizers': cr.metadata.finalizers if pending_deletion and cr.metadata.finalizers else []
+            })
+        
+        # Format ClusterRoleBindings
+        clusterrolebinding_list = []
+        for crb in cluster_role_bindings:
+            # Check if orphaned (no subjects or role doesn't exist)
+            is_orphaned = not crb.subjects or len(crb.subjects) == 0
+            
+            # Check if the referenced ClusterRole exists
+            if not is_orphaned and crb.role_ref:
+                role_exists = any(cr.metadata.name == crb.role_ref.name for cr in cluster_roles)
+                if not role_exists:
+                    is_orphaned = True
+            
+            pending_deletion = is_pending_deletion(crb)
+            
+            # Get role name and subjects
+            role_name = crb.role_ref.name if crb.role_ref else 'Unknown'
+            subjects_count = len(crb.subjects) if crb.subjects else 0
+            
+            # Get first subject for display
+            first_subject = ''
+            if crb.subjects and len(crb.subjects) > 0:
+                subj = crb.subjects[0]
+                if subj.kind == 'ServiceAccount':
+                    first_subject = f"{subj.kind}:{subj.namespace}/{subj.name}" if subj.namespace else f"{subj.kind}:{subj.name}"
+                else:
+                    first_subject = f"{subj.kind}:{subj.name}"
+                if subjects_count > 1:
+                    first_subject += f" (+{subjects_count - 1} more)"
+            
+            clusterrolebinding_list.append({
+                'name': crb.metadata.name,
+                'role': role_name,
+                'subjects': first_subject,
+                'subjectsCount': subjects_count,
+                'age': crb.metadata.creation_timestamp.isoformat() if crb.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': crb.metadata.deletion_timestamp.isoformat() if pending_deletion and crb.metadata.deletion_timestamp else None,
+                'finalizers': crb.metadata.finalizers if pending_deletion and crb.metadata.finalizers else []
+            })
         return jsonify({
             'status': 'error',
             'message': f'Failed to refresh data: {str(e)}',
@@ -120,7 +667,186 @@ def scale_deployment(namespace, deployment_name):
                 raise
         
         print(f"Successfully scaled {resource_type} {namespace}/{deployment_name} to {replicas} replicas")
+        return jsonify({
+            'success': True,
+            'message': f'Successfully scaled {resource_type} {namespace}/{deployment_name} to {replicas} replicas',
+            'replicas': replicas
+        }), 200
         
+        
+        # Format ClusterRoles
+        clusterrole_list = []
+        cluster_roles = []
+        try:
+            cluster_roles = rbac_v1.list_cluster_role().items
+        except:
+            pass
+        
+        for cr in cluster_roles:
+            # Check if orphaned (not referenced by any ClusterRoleBinding or RoleBinding)
+            is_orphaned = True
+            
+            # Check ClusterRoleBindings
+            for crb in cluster_role_bindings:
+                if crb.role_ref and crb.role_ref.kind == 'ClusterRole' and crb.role_ref.name == cr.metadata.name:
+                    is_orphaned = False
+                    break
+            
+            # Check RoleBindings (can also reference ClusterRoles)
+            if is_orphaned:
+                for rb in role_bindings:
+                    if rb.role_ref and rb.role_ref.kind == 'ClusterRole' and rb.role_ref.name == cr.metadata.name:
+                        is_orphaned = False
+                        break
+            
+            # System ClusterRoles are not orphaned
+            is_system = cr.metadata.name.startswith('system:') or cr.metadata.name.startswith('cluster-')
+            if is_system:
+                is_orphaned = False
+            
+            pending_deletion = is_pending_deletion(cr)
+            
+            # Count rules
+            rules_count = len(cr.rules) if cr.rules else 0
+            
+            clusterrole_list.append({
+                'name': cr.metadata.name,
+                'rules': rules_count,
+                'age': cr.metadata.creation_timestamp.isoformat() if cr.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': cr.metadata.deletion_timestamp.isoformat() if pending_deletion and cr.metadata.deletion_timestamp else None,
+                'finalizers': cr.metadata.finalizers if pending_deletion and cr.metadata.finalizers else []
+            })
+        
+        # Format ClusterRoleBindings
+        clusterrolebinding_list = []
+        for crb in cluster_role_bindings:
+            # Check if orphaned (no subjects or role doesn't exist)
+            is_orphaned = not crb.subjects or len(crb.subjects) == 0
+            
+            # Check if the referenced ClusterRole exists
+            if not is_orphaned and crb.role_ref:
+                role_exists = any(cr.metadata.name == crb.role_ref.name for cr in cluster_roles)
+                if not role_exists:
+                    is_orphaned = True
+            
+            pending_deletion = is_pending_deletion(crb)
+            
+            # Get role name and subjects
+            role_name = crb.role_ref.name if crb.role_ref else 'Unknown'
+            subjects_count = len(crb.subjects) if crb.subjects else 0
+            
+            # Get first subject for display
+            first_subject = ''
+            if crb.subjects and len(crb.subjects) > 0:
+                subj = crb.subjects[0]
+                if subj.kind == 'ServiceAccount':
+                    first_subject = f"{subj.kind}:{subj.namespace}/{subj.name}" if subj.namespace else f"{subj.kind}:{subj.name}"
+                else:
+                    first_subject = f"{subj.kind}:{subj.name}"
+                if subjects_count > 1:
+                    first_subject += f" (+{subjects_count - 1} more)"
+            
+            clusterrolebinding_list.append({
+                'name': crb.metadata.name,
+                'role': role_name,
+                'subjects': first_subject,
+                'subjectsCount': subjects_count,
+                'age': crb.metadata.creation_timestamp.isoformat() if crb.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': crb.metadata.deletion_timestamp.isoformat() if pending_deletion and crb.metadata.deletion_timestamp else None,
+                'finalizers': crb.metadata.finalizers if pending_deletion and crb.metadata.finalizers else []
+            })
+
+        # Format LimitRanges
+        limitrange_list = []
+        for lr in limitranges.items:
+            is_orphaned = not lr.metadata.owner_references
+            pending_deletion = is_pending_deletion(lr)
+            
+            limits_count = len(lr.spec.limits) if lr.spec.limits else 0
+            
+            limitrange_list.append({
+                'name': lr.metadata.name,
+                'namespace': lr.metadata.namespace,
+                'limits': limits_count,
+                'age': lr.metadata.creation_timestamp.isoformat() if lr.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': lr.metadata.deletion_timestamp.isoformat() if pending_deletion and lr.metadata.deletion_timestamp else None,
+                'finalizers': lr.metadata.finalizers if pending_deletion and lr.metadata.finalizers else []
+            })
+        
+        # Format ResourceQuotas
+        resourcequota_list = []
+        for rq in resourcequotas.items:
+            is_orphaned = not rq.metadata.owner_references
+            pending_deletion = is_pending_deletion(rq)
+            
+            hard_count = len(rq.spec.hard) if rq.spec.hard else 0
+            
+            resourcequota_list.append({
+                'name': rq.metadata.name,
+                'namespace': rq.metadata.namespace,
+                'hardLimits': hard_count,
+                'age': rq.metadata.creation_timestamp.isoformat() if rq.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': rq.metadata.deletion_timestamp.isoformat() if pending_deletion and rq.metadata.deletion_timestamp else None,
+                'finalizers': rq.metadata.finalizers if pending_deletion and rq.metadata.finalizers else []
+            })
+        
+        # Format VolumeSnapshots
+        volumesnapshot_list = []
+        for vs in volumesnapshots:
+            metadata = vs.get('metadata', {})
+            spec = vs.get('spec', {})
+            status = vs.get('status', {})
+            
+            is_orphaned = not metadata.get('ownerReferences')
+            pending_deletion = metadata.get('deletionTimestamp') is not None
+            
+            source_pvc = spec.get('source', {}).get('persistentVolumeClaimName', 'Unknown')
+            ready = status.get('readyToUse', False)
+            
+            volumesnapshot_list.append({
+                'name': metadata.get('name', 'Unknown'),
+                'namespace': metadata.get('namespace', 'Unknown'),
+                'sourcePVC': source_pvc,
+                'ready': ready,
+                'age': metadata.get('creationTimestamp', ''),
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': metadata.get('deletionTimestamp'),
+                'finalizers': metadata.get('finalizers', []) if pending_deletion else []
+            })
+        
+        # Format VolumeSnapshotContents
+        volumesnapshotcontent_list = []
+        for vsc in volumesnapshotcontents:
+            metadata = vsc.get('metadata', {})
+            spec = vsc.get('spec', {})
+            status = vsc.get('status', {})
+            
+            is_orphaned = not metadata.get('ownerReferences')
+            pending_deletion = metadata.get('deletionTimestamp') is not None
+            
+            snapshot_ref = spec.get('volumeSnapshotRef', {}).get('name', 'Unknown')
+            ready = status.get('readyToUse', False)
+            
+            volumesnapshotcontent_list.append({
+                'name': metadata.get('name', 'Unknown'),
+                'snapshotRef': snapshot_ref,
+                'ready': ready,
+                'age': metadata.get('creationTimestamp', ''),
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': metadata.get('deletionTimestamp'),
+                'finalizers': metadata.get('finalizers', []) if pending_deletion else []
+            })
+
         return jsonify({
             'success': True,
             'message': f'{resource_type} {deployment_name} scaled to {replicas} replicas',
@@ -206,16 +932,66 @@ def resources_api():
     """Get all Kubernetes resources"""
     try:
         # Get all resource types
-        pods = v1.list_pod_for_all_namespaces()
+        batch_v1 = client.BatchV1Api()
+        networking_v1 = client.NetworkingV1Api()
+        rbac_v1 = client.RbacAuthorizationV1Api()
+        storage_v1 = client.StorageV1Api()
+        
+        configmaps = v1.list_config_map_for_all_namespaces()
+        cronjobs = batch_v1.list_cron_job_for_all_namespaces()
+        daemonsets = apps_v1.list_daemon_set_for_all_namespaces()
         deployments = apps_v1.list_deployment_for_all_namespaces()
-        statefulsets = apps_v1.list_stateful_set_for_all_namespaces()
-        replicasets = apps_v1.list_replica_set_for_all_namespaces()
+        ingresses = networking_v1.list_ingress_for_all_namespaces()
+        jobs = batch_v1.list_job_for_all_namespaces()
+        networkpolicies = networking_v1.list_network_policy_for_all_namespaces()
+        pods = v1.list_pod_for_all_namespaces()
         pvcs = v1.list_persistent_volume_claim_for_all_namespaces()
         pvs = v1.list_persistent_volume()
-        configmaps = v1.list_config_map_for_all_namespaces()
+        replicasets = apps_v1.list_replica_set_for_all_namespaces()
+        rolebindings = rbac_v1.list_role_binding_for_all_namespaces()
+        roles = rbac_v1.list_role_for_all_namespaces()
         secrets = v1.list_secret_for_all_namespaces()
-        services = v1.list_service_for_all_namespaces()
         service_accounts = v1.list_service_account_for_all_namespaces()
+        services = v1.list_service_for_all_namespaces()
+        statefulsets = apps_v1.list_stateful_set_for_all_namespaces()
+        storageclasses = storage_v1.list_storage_class()
+        
+        # Additional resources
+        limitranges = v1.list_limit_range_for_all_namespaces()
+        resourcequotas = v1.list_resource_quota_for_all_namespaces()
+        
+        # Autoscaling and Policy resources
+        autoscaling_v1 = client.AutoscalingV1Api()
+        policy_v1 = client.PolicyV1Api()
+        
+        endpoints = v1.list_endpoints_for_all_namespaces()
+        horizontalpodautoscalers = autoscaling_v1.list_horizontal_pod_autoscaler_for_all_namespaces()
+        namespaces = v1.list_namespace()
+        poddisruptionbudgets = policy_v1.list_pod_disruption_budget_for_all_namespaces()
+        
+        # VolumeSnapshots (requires snapshot.storage.k8s.io API)
+        volumesnapshots = []
+        volumesnapshotcontents = []
+        try:
+            snapshot_v1 = client.CustomObjectsApi()
+            vs_result = snapshot_v1.list_cluster_custom_object(
+                group='snapshot.storage.k8s.io',
+                version='v1',
+                plural='volumesnapshots'
+            )
+            volumesnapshots = vs_result.get('items', [])
+        except:
+            pass
+        
+        try:
+            vsc_result = snapshot_v1.list_cluster_custom_object(
+                group='snapshot.storage.k8s.io',
+                version='v1',
+                plural='volumesnapshotcontents'
+            )
+            volumesnapshotcontents = vsc_result.get('items', [])
+        except:
+            pass
         
         # Get NDK custom resources
         custom_api = client.CustomObjectsApi()
@@ -746,20 +1522,570 @@ def resources_api():
                 'finalizers': sa.metadata.finalizers if pending_deletion and sa.metadata.finalizers else []
             })
         
+        
+        # Format ClusterRoles
+        clusterrole_list = []
+        cluster_roles = []
+        try:
+            cluster_roles = rbac_v1.list_cluster_role().items
+        except:
+            pass
+        
+        for cr in cluster_roles:
+            # Check if orphaned (not referenced by any ClusterRoleBinding or RoleBinding)
+            is_orphaned = True
+            
+            # Check ClusterRoleBindings
+            for crb in cluster_role_bindings:
+                if crb.role_ref and crb.role_ref.kind == 'ClusterRole' and crb.role_ref.name == cr.metadata.name:
+                    is_orphaned = False
+                    break
+            
+            # Check RoleBindings (can also reference ClusterRoles)
+            if is_orphaned:
+                for rb in role_bindings:
+                    if rb.role_ref and rb.role_ref.kind == 'ClusterRole' and rb.role_ref.name == cr.metadata.name:
+                        is_orphaned = False
+                        break
+            
+            # System ClusterRoles are not orphaned
+            is_system = cr.metadata.name.startswith('system:') or cr.metadata.name.startswith('cluster-')
+            if is_system:
+                is_orphaned = False
+            
+            pending_deletion = is_pending_deletion(cr)
+            
+            # Count rules
+            rules_count = len(cr.rules) if cr.rules else 0
+            
+            clusterrole_list.append({
+                'name': cr.metadata.name,
+                'rules': rules_count,
+                'age': cr.metadata.creation_timestamp.isoformat() if cr.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': cr.metadata.deletion_timestamp.isoformat() if pending_deletion and cr.metadata.deletion_timestamp else None,
+                'finalizers': cr.metadata.finalizers if pending_deletion and cr.metadata.finalizers else []
+            })
+        
+        # Format ClusterRoleBindings
+        clusterrolebinding_list = []
+        for crb in cluster_role_bindings:
+            # Check if orphaned (no subjects or role doesn't exist)
+            is_orphaned = not crb.subjects or len(crb.subjects) == 0
+            
+            # Check if the referenced ClusterRole exists
+            if not is_orphaned and crb.role_ref:
+                role_exists = any(cr.metadata.name == crb.role_ref.name for cr in cluster_roles)
+                if not role_exists:
+                    is_orphaned = True
+            
+            pending_deletion = is_pending_deletion(crb)
+            
+            # Get role name and subjects
+            role_name = crb.role_ref.name if crb.role_ref else 'Unknown'
+            subjects_count = len(crb.subjects) if crb.subjects else 0
+            
+            # Get first subject for display
+            first_subject = ''
+            if crb.subjects and len(crb.subjects) > 0:
+                subj = crb.subjects[0]
+                if subj.kind == 'ServiceAccount':
+                    first_subject = f"{subj.kind}:{subj.namespace}/{subj.name}" if subj.namespace else f"{subj.kind}:{subj.name}"
+                else:
+                    first_subject = f"{subj.kind}:{subj.name}"
+                if subjects_count > 1:
+                    first_subject += f" (+{subjects_count - 1} more)"
+            
+            clusterrolebinding_list.append({
+                'name': crb.metadata.name,
+                'role': role_name,
+                'subjects': first_subject,
+                'subjectsCount': subjects_count,
+                'age': crb.metadata.creation_timestamp.isoformat() if crb.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': crb.metadata.deletion_timestamp.isoformat() if pending_deletion and crb.metadata.deletion_timestamp else None,
+                'finalizers': crb.metadata.finalizers if pending_deletion and crb.metadata.finalizers else []
+            })
+
+        # Format CronJobs
+        cronjob_list = []
+        for cj in cronjobs.items:
+            is_orphaned = False
+            pending_deletion = is_pending_deletion(cj)
+            
+            schedule = cj.spec.schedule if cj.spec.schedule else 'Unknown'
+            suspend = cj.spec.suspend if cj.spec.suspend else False
+            last_schedule = cj.status.last_schedule_time.isoformat() if cj.status.last_schedule_time else 'Never'
+            
+            cronjob_list.append({
+                'name': cj.metadata.name,
+                'namespace': cj.metadata.namespace,
+                'schedule': schedule,
+                'suspend': suspend,
+                'lastSchedule': last_schedule,
+                'age': cj.metadata.creation_timestamp.isoformat() if cj.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': cj.metadata.deletion_timestamp.isoformat() if pending_deletion and cj.metadata.deletion_timestamp else None,
+                'finalizers': cj.metadata.finalizers if pending_deletion and cj.metadata.finalizers else []
+            })
+        
+        # Format DaemonSets
+        daemonset_list = []
+        for ds in daemonsets.items:
+            is_orphaned = not ds.metadata.owner_references
+            pending_deletion = is_pending_deletion(ds)
+            
+            desired = ds.status.desired_number_scheduled or 0
+            current = ds.status.current_number_scheduled or 0
+            ready = ds.status.number_ready or 0
+            
+            daemonset_list.append({
+                'name': ds.metadata.name,
+                'namespace': ds.metadata.namespace,
+                'desired': desired,
+                'current': current,
+                'ready': ready,
+                'age': ds.metadata.creation_timestamp.isoformat() if ds.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': ds.metadata.deletion_timestamp.isoformat() if pending_deletion and ds.metadata.deletion_timestamp else None,
+                'finalizers': ds.metadata.finalizers if pending_deletion and ds.metadata.finalizers else []
+            })
+        
+        # Format Endpoints
+        endpoint_list = []
+        for ep in endpoints.items:
+            is_orphaned = not ep.metadata.owner_references
+            pending_deletion = is_pending_deletion(ep)
+            
+            # Count subsets and addresses
+            subsets_count = len(ep.subsets) if ep.subsets else 0
+            addresses_count = 0
+            if ep.subsets:
+                for subset in ep.subsets:
+                    if subset.addresses:
+                        addresses_count += len(subset.addresses)
+            
+            endpoint_list.append({
+                'name': ep.metadata.name,
+                'namespace': ep.metadata.namespace,
+                'subsets': subsets_count,
+                'addresses': addresses_count,
+                'age': ep.metadata.creation_timestamp.isoformat() if ep.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': ep.metadata.deletion_timestamp.isoformat() if pending_deletion and ep.metadata.deletion_timestamp else None,
+                'finalizers': ep.metadata.finalizers if pending_deletion and ep.metadata.finalizers else []
+            })
+
+        # Format HorizontalPodAutoscalers
+        hpa_list = []
+        for hpa in horizontalpodautoscalers.items:
+            # Check if orphaned (target doesn't exist)
+            is_orphaned = False
+            target_ref = hpa.spec.scale_target_ref
+            
+            if target_ref:
+                target_kind = target_ref.kind
+                target_name = target_ref.name
+                target_namespace = hpa.metadata.namespace
+                
+                # Check if target exists
+                if target_kind == 'Deployment':
+                    target_exists = any(d.metadata.name == target_name and d.metadata.namespace == target_namespace for d in deployments.items)
+                    is_orphaned = not target_exists
+                elif target_kind == 'StatefulSet':
+                    target_exists = any(s.metadata.name == target_name and s.metadata.namespace == target_namespace for s in statefulsets.items)
+                    is_orphaned = not target_exists
+                elif target_kind == 'ReplicaSet':
+                    target_exists = any(r.metadata.name == target_name and r.metadata.namespace == target_namespace for r in replicasets.items)
+                    is_orphaned = not target_exists
+            
+            pending_deletion = is_pending_deletion(hpa)
+            
+            # Get current/desired replicas
+            current_replicas = hpa.status.current_replicas if hpa.status and hpa.status.current_replicas else 0
+            desired_replicas = hpa.status.desired_replicas if hpa.status and hpa.status.desired_replicas else 0
+            
+            # Get target reference
+            target = f"{target_ref.kind}/{target_ref.name}" if target_ref else 'Unknown'
+            
+            hpa_list.append({
+                'name': hpa.metadata.name,
+                'namespace': hpa.metadata.namespace,
+                'target': target,
+                'minReplicas': hpa.spec.min_replicas if hpa.spec.min_replicas else 1,
+                'maxReplicas': hpa.spec.max_replicas,
+                'currentReplicas': current_replicas,
+                'desiredReplicas': desired_replicas,
+                'age': hpa.metadata.creation_timestamp.isoformat() if hpa.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': hpa.metadata.deletion_timestamp.isoformat() if pending_deletion and hpa.metadata.deletion_timestamp else None,
+                'finalizers': hpa.metadata.finalizers if pending_deletion and hpa.metadata.finalizers else []
+            })
+
+        # Format Namespaces
+        namespace_list = []
+        for ns in namespaces.items:
+            # Check if orphaned (empty namespace with no resources)
+            is_orphaned = False
+            
+            # Count resources in this namespace
+            resource_count = 0
+            resource_count += sum(1 for p in pods.items if p.metadata.namespace == ns.metadata.name)
+            resource_count += sum(1 for d in deployments.items if d.metadata.namespace == ns.metadata.name)
+            resource_count += sum(1 for s in statefulsets.items if s.metadata.namespace == ns.metadata.name)
+            resource_count += sum(1 for ds in daemonsets.items if ds.metadata.namespace == ns.metadata.name)
+            resource_count += sum(1 for cm in configmaps.items if cm.metadata.namespace == ns.metadata.name)
+            resource_count += sum(1 for sec in secrets.items if sec.metadata.namespace == ns.metadata.name)
+            resource_count += sum(1 for svc in services.items if svc.metadata.namespace == ns.metadata.name)
+            
+            # Namespace is orphaned if it's empty and not a system namespace
+            system_namespaces = ['default', 'kube-system', 'kube-public', 'kube-node-lease']
+            if resource_count == 0 and ns.metadata.name not in system_namespaces:
+                is_orphaned = True
+            
+            pending_deletion = is_pending_deletion(ns)
+            
+            # Get phase
+            phase = ns.status.phase if ns.status and ns.status.phase else 'Unknown'
+            
+            namespace_list.append({
+                'name': ns.metadata.name,
+                'phase': phase,
+                'resourceCount': resource_count,
+                'age': ns.metadata.creation_timestamp.isoformat() if ns.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': ns.metadata.deletion_timestamp.isoformat() if pending_deletion and ns.metadata.deletion_timestamp else None,
+                'finalizers': ns.metadata.finalizers if pending_deletion and ns.metadata.finalizers else []
+            })
+
+        # Format PodDisruptionBudgets
+        pdb_list = []
+        for pdb in poddisruptionbudgets.items:
+            # Check if orphaned (no matching pods via label selector)
+            is_orphaned = False
+            
+            if pdb.spec.selector and pdb.spec.selector.match_labels:
+                # Check if any pods match the selector in the same namespace
+                matching_pods = False
+                for pod in pods.items:
+                    if pod.metadata.namespace == pdb.metadata.namespace:
+                        if pod.metadata.labels:
+                            # Check if all selector labels match
+                            all_match = all(
+                                pod.metadata.labels.get(k) == v 
+                                for k, v in pdb.spec.selector.match_labels.items()
+                            )
+                            if all_match:
+                                matching_pods = True
+                                break
+                
+                is_orphaned = not matching_pods
+            
+            pending_deletion = is_pending_deletion(pdb)
+            
+            # Get disruption info
+            min_available = pdb.spec.min_available if pdb.spec.min_available else '-'
+            max_unavailable = pdb.spec.max_unavailable if pdb.spec.max_unavailable else '-'
+            current_healthy = pdb.status.current_healthy if pdb.status and pdb.status.current_healthy is not None else 0
+            desired_healthy = pdb.status.desired_healthy if pdb.status and pdb.status.desired_healthy is not None else 0
+            
+            pdb_list.append({
+                'name': pdb.metadata.name,
+                'namespace': pdb.metadata.namespace,
+                'minAvailable': str(min_available),
+                'maxUnavailable': str(max_unavailable),
+                'currentHealthy': current_healthy,
+                'desiredHealthy': desired_healthy,
+                'age': pdb.metadata.creation_timestamp.isoformat() if pdb.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': pdb.metadata.deletion_timestamp.isoformat() if pending_deletion and pdb.metadata.deletion_timestamp else None,
+                'finalizers': pdb.metadata.finalizers if pending_deletion and pdb.metadata.finalizers else []
+            })
+
+        # Format Ingresses
+        ingress_list = []
+        for ing in ingresses.items:
+            is_orphaned = not ing.metadata.owner_references
+            pending_deletion = is_pending_deletion(ing)
+            
+            ingress_class = ing.spec.ingress_class_name if ing.spec.ingress_class_name else 'default'
+            
+            hosts = []
+            if ing.spec.rules:
+                for rule in ing.spec.rules:
+                    if rule.host:
+                        hosts.append(rule.host)
+            hosts_str = ', '.join(hosts) if hosts else '*'
+            
+            ingress_list.append({
+                'name': ing.metadata.name,
+                'namespace': ing.metadata.namespace,
+                'class': ingress_class,
+                'hosts': hosts_str,
+                'age': ing.metadata.creation_timestamp.isoformat() if ing.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': ing.metadata.deletion_timestamp.isoformat() if pending_deletion and ing.metadata.deletion_timestamp else None,
+                'finalizers': ing.metadata.finalizers if pending_deletion and ing.metadata.finalizers else []
+            })
+        
+        # Format Jobs
+        job_list = []
+        for job in jobs.items:
+            is_orphaned = not job.metadata.owner_references
+            pending_deletion = is_pending_deletion(job)
+            
+            completions = job.spec.completions or 1
+            succeeded = job.status.succeeded or 0
+            failed = job.status.failed or 0
+            
+            job_list.append({
+                'name': job.metadata.name,
+                'namespace': job.metadata.namespace,
+                'completions': f"{succeeded}/{completions}",
+                'failed': failed,
+                'age': job.metadata.creation_timestamp.isoformat() if job.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': job.metadata.deletion_timestamp.isoformat() if pending_deletion and job.metadata.deletion_timestamp else None,
+                'finalizers': job.metadata.finalizers if pending_deletion and job.metadata.finalizers else []
+            })
+        
+        # Format NetworkPolicies
+        networkpolicy_list = []
+        for np in networkpolicies.items:
+            is_orphaned = not np.metadata.owner_references
+            pending_deletion = is_pending_deletion(np)
+            
+            ingress_count = len(np.spec.ingress) if np.spec.ingress else 0
+            egress_count = len(np.spec.egress) if np.spec.egress else 0
+            
+            networkpolicy_list.append({
+                'name': np.metadata.name,
+                'namespace': np.metadata.namespace,
+                'ingress': ingress_count,
+                'egress': egress_count,
+                'age': np.metadata.creation_timestamp.isoformat() if np.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': np.metadata.deletion_timestamp.isoformat() if pending_deletion and np.metadata.deletion_timestamp else None,
+                'finalizers': np.metadata.finalizers if pending_deletion and np.metadata.finalizers else []
+            })
+        
+        # Format Roles
+        role_list = []
+        for role in roles.items:
+            is_orphaned = True
+            for rb in rolebindings.items:
+                if rb.role_ref and rb.role_ref.kind == 'Role' and rb.role_ref.name == role.metadata.name and rb.metadata.namespace == role.metadata.namespace:
+                    is_orphaned = False
+                    break
+            
+            pending_deletion = is_pending_deletion(role)
+            rules_count = len(role.rules) if role.rules else 0
+            
+            role_list.append({
+                'name': role.metadata.name,
+                'namespace': role.metadata.namespace,
+                'rules': rules_count,
+                'age': role.metadata.creation_timestamp.isoformat() if role.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': role.metadata.deletion_timestamp.isoformat() if pending_deletion and role.metadata.deletion_timestamp else None,
+                'finalizers': role.metadata.finalizers if pending_deletion and role.metadata.finalizers else []
+            })
+        
+        # Format RoleBindings
+        rolebinding_list = []
+        for rb in rolebindings.items:
+            is_orphaned = not rb.subjects or len(rb.subjects) == 0
+            
+            if not is_orphaned and rb.role_ref:
+                if rb.role_ref.kind == 'Role':
+                    role_exists = any(r.metadata.name == rb.role_ref.name and r.metadata.namespace == rb.metadata.namespace for r in roles.items)
+                    if not role_exists:
+                        is_orphaned = True
+            
+            pending_deletion = is_pending_deletion(rb)
+            
+            role_name = rb.role_ref.name if rb.role_ref else 'Unknown'
+            role_kind = rb.role_ref.kind if rb.role_ref else 'Unknown'
+            subjects_count = len(rb.subjects) if rb.subjects else 0
+            
+            first_subject = ''
+            if rb.subjects and len(rb.subjects) > 0:
+                subj = rb.subjects[0]
+                if subj.kind == 'ServiceAccount':
+                    first_subject = f"{subj.kind}:{subj.namespace}/{subj.name}" if subj.namespace else f"{subj.kind}:{subj.name}"
+                else:
+                    first_subject = f"{subj.kind}:{subj.name}"
+                if subjects_count > 1:
+                    first_subject += f" (+{subjects_count - 1} more)"
+            
+            rolebinding_list.append({
+                'name': rb.metadata.name,
+                'namespace': rb.metadata.namespace,
+                'role': role_name,
+                'roleKind': role_kind,
+                'subjects': first_subject,
+                'subjectsCount': subjects_count,
+                'age': rb.metadata.creation_timestamp.isoformat() if rb.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': rb.metadata.deletion_timestamp.isoformat() if pending_deletion and rb.metadata.deletion_timestamp else None,
+                'finalizers': rb.metadata.finalizers if pending_deletion and rb.metadata.finalizers else []
+            })
+        
+        # Format StorageClasses
+        storageclass_list = []
+        for sc in storageclasses.items:
+            is_orphaned = False
+            pending_deletion = is_pending_deletion(sc)
+            
+            provisioner = sc.provisioner if sc.provisioner else 'Unknown'
+            reclaim_policy = sc.reclaim_policy if sc.reclaim_policy else 'Delete'
+            volume_binding_mode = sc.volume_binding_mode if sc.volume_binding_mode else 'Immediate'
+            
+            storageclass_list.append({
+                'name': sc.metadata.name,
+                'provisioner': provisioner,
+                'reclaimPolicy': reclaim_policy,
+                'volumeBindingMode': volume_binding_mode,
+                'age': sc.metadata.creation_timestamp.isoformat() if sc.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': sc.metadata.deletion_timestamp.isoformat() if pending_deletion and sc.metadata.deletion_timestamp else None,
+                'finalizers': sc.metadata.finalizers if pending_deletion and sc.metadata.finalizers else []
+            })
+
+
+        # Format LimitRanges
+        limitrange_list = []
+        for lr in limitranges.items:
+            is_orphaned = not lr.metadata.owner_references
+            pending_deletion = is_pending_deletion(lr)
+            
+            limits_count = len(lr.spec.limits) if lr.spec.limits else 0
+            
+            limitrange_list.append({
+                'name': lr.metadata.name,
+                'namespace': lr.metadata.namespace,
+                'limits': limits_count,
+                'age': lr.metadata.creation_timestamp.isoformat() if lr.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': lr.metadata.deletion_timestamp.isoformat() if pending_deletion and lr.metadata.deletion_timestamp else None,
+                'finalizers': lr.metadata.finalizers if pending_deletion and lr.metadata.finalizers else []
+            })
+        
+        # Format ResourceQuotas
+        resourcequota_list = []
+        for rq in resourcequotas.items:
+            is_orphaned = not rq.metadata.owner_references
+            pending_deletion = is_pending_deletion(rq)
+            
+            hard_count = len(rq.spec.hard) if rq.spec.hard else 0
+            
+            resourcequota_list.append({
+                'name': rq.metadata.name,
+                'namespace': rq.metadata.namespace,
+                'hardLimits': hard_count,
+                'age': rq.metadata.creation_timestamp.isoformat() if rq.metadata.creation_timestamp else '',
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': rq.metadata.deletion_timestamp.isoformat() if pending_deletion and rq.metadata.deletion_timestamp else None,
+                'finalizers': rq.metadata.finalizers if pending_deletion and rq.metadata.finalizers else []
+            })
+        
+        # Format VolumeSnapshots
+        volumesnapshot_list = []
+        for vs in volumesnapshots:
+            metadata = vs.get('metadata', {})
+            spec = vs.get('spec', {})
+            status = vs.get('status', {})
+            
+            is_orphaned = not metadata.get('ownerReferences')
+            pending_deletion = metadata.get('deletionTimestamp') is not None
+            
+            source_pvc = spec.get('source', {}).get('persistentVolumeClaimName', 'Unknown')
+            ready = status.get('readyToUse', False)
+            
+            volumesnapshot_list.append({
+                'name': metadata.get('name', 'Unknown'),
+                'namespace': metadata.get('namespace', 'Unknown'),
+                'sourcePVC': source_pvc,
+                'ready': ready,
+                'age': metadata.get('creationTimestamp', ''),
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': metadata.get('deletionTimestamp'),
+                'finalizers': metadata.get('finalizers', []) if pending_deletion else []
+            })
+        
+        # Format VolumeSnapshotContents
+        volumesnapshotcontent_list = []
+        for vsc in volumesnapshotcontents:
+            metadata = vsc.get('metadata', {})
+            spec = vsc.get('spec', {})
+            status = vsc.get('status', {})
+            
+            is_orphaned = not metadata.get('ownerReferences')
+            pending_deletion = metadata.get('deletionTimestamp') is not None
+            
+            snapshot_ref = spec.get('volumeSnapshotRef', {}).get('name', 'Unknown')
+            ready = status.get('readyToUse', False)
+            
+            volumesnapshotcontent_list.append({
+                'name': metadata.get('name', 'Unknown'),
+                'snapshotRef': snapshot_ref,
+                'ready': ready,
+                'age': metadata.get('creationTimestamp', ''),
+                'orphaned': is_orphaned,
+                'pendingDeletion': pending_deletion,
+                'deletionTimestamp': metadata.get('deletionTimestamp'),
+                'finalizers': metadata.get('finalizers', []) if pending_deletion else []
+            })
+
         return jsonify({
-            'pods': pod_list,
+            'applications': application_list,
+            'clusterrolebindings': clusterrolebinding_list,
+            'clusterroles': clusterrole_list,
+            'configmaps': configmap_list,
+            'cronjobs': cronjob_list,
+            'daemonsets': daemonset_list,
             'deployments': deployment_list,
-            'statefulsets': statefulset_list,
-            'replicasets': replicaset_list,
-            'services': service_list,
+            'endpoints': endpoint_list,
+            'horizontalpodautoscalers': hpa_list,
+            'ingresses': ingress_list,
+            'jobs': job_list,
+            'limitranges': limitrange_list,
+            'namespaces': namespace_list,
+            'networkpolicies': networkpolicy_list,
+            'poddisruptionbudgets': pdb_list,
+            'pods': pod_list,
+            'protection_plans': plan_list,
             'pvcs': pvc_list,
             'pvs': pv_list,
-            'configmaps': configmap_list,
+            'replicasets': replicaset_list,
+            'resourcequotas': resourcequota_list,
+            'rolebindings': rolebinding_list,
+            'roles': role_list,
             'secrets': secret_list,
             'serviceaccounts': serviceaccount_list,
-            'applications': application_list,
+            'services': service_list,
             'snapshots': snapshot_list,
-            'protection_plans': plan_list,
+            'statefulsets': statefulset_list,
+            'storageclasses': storageclass_list,
+            'volumesnapshotcontents': volumesnapshotcontent_list,
+            'volumesnapshots': volumesnapshot_list,
             'last_updated': datetime.now().isoformat()
         })
         
