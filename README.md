@@ -379,22 +379,32 @@ gunicorn -w 4 -b 0.0.0.0:5001 "app:create_app()"
 
 All Kubernetes manifests are available in the `k8s/` directory.
 
-#### Quick Deploy
+#### Option 1: Single All-in-One Manifest (Recommended for NKP)
 ```bash
-# Deploy all resources
-kubectl apply -f k8s/
-
-# Or use the deployment script
-./k8s/deploy.sh
+# Deploy everything with a single command
+kubectl apply -f k8s/nkp-cluster-visualizer.yaml
 ```
 
-#### Manual Deploy
+This single manifest includes:
+- ServiceAccount
+- ClusterRole with all required permissions
+- ClusterRoleBinding
+- ConfigMap
+- Deployment (3 replicas)
+- ClusterIP Service
+- LoadBalancer Service
+
+#### Option 2: Individual Manifests
 ```bash
-# Apply manifests in order
+# Use the deployment script
+./k8s/deploy.sh
+
+# Or apply manually in order
 kubectl apply -f k8s/serviceaccount.yaml
 kubectl apply -f k8s/clusterrole.yaml
 kubectl apply -f k8s/clusterrolebinding.yaml
 kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/deployment.yaml
 kubectl apply -f k8s/service.yaml
 kubectl apply -f k8s/loadbalancer.yaml
 ```
@@ -406,11 +416,39 @@ kubectl get svc nkp-cluster-visualizer-loadbalancer
 
 # Access via browser
 http://<EXTERNAL-IP>
+
+# Check deployment status
+kubectl get pods -l app=nkp-cluster-visualizer
+
+# View logs
+kubectl logs -l app=nkp-cluster-visualizer --tail=100
+```
+
+#### Configuration
+
+Before deploying, customize the ConfigMap in `k8s/configmap.yaml` or `k8s/nkp-cluster-visualizer.yaml`:
+
+```yaml
+data:
+  VERSION: "v3.3.0"
+  CLUSTER_NAME: "your-cluster-name"
+  DASHBOARD_USERNAME: "your-username"
+  DASHBOARD_PASSWORD: "your-password"
+  SECRET_KEY: "your-secret-key"
 ```
 
 #### Important: ClusterRole Permissions
 
 ⚠️ **When adding new Kubernetes resource types**, you **MUST** update the ClusterRole in `k8s/clusterrole.yaml`.
+
+The ClusterRole includes permissions for 30+ resource types including:
+- Core resources (nodes, pods, services, etc.)
+- Apps (deployments, statefulsets, daemonsets)
+- Batch (cronjobs, jobs)
+- Networking (ingresses, networkpolicies)
+- Storage (storageclasses, volumesnapshots)
+- RBAC (roles, rolebindings)
+- Nutanix-specific CRDs (ndk.nutanix.com, dataservices.nutanix.com)
 
 See `k8s/README.md` for detailed instructions on managing permissions.
 
@@ -517,8 +555,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🗺️ Roadmap
 
+### Completed Features
+- [x] Kubernetes deployment manifests (v3.3.0)
+- [x] All-in-one deployment YAML for NKP
+
 ### Planned Features
-- [ ] Kubernetes deployment manifests
 - [ ] Helm chart for easy deployment
 - [ ] Multi-cluster support
 - [ ] Advanced filtering and search

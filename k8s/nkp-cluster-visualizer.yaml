@@ -1,0 +1,457 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nkp-cluster-visualizer-sa
+  namespace: default
+  labels:
+    app: nkp-cluster-visualizer
+    environment: production
+    platform: nutanix
+    version: v3.3.0
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nkp-cluster-visualizer-role
+  labels:
+    app: nkp-cluster-visualizer
+    environment: production
+    platform: nutanix
+    version: v3.3.0
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - pods
+  - services
+  - namespaces
+  - persistentvolumeclaims
+  - persistentvolumes
+  - configmaps
+  - secrets
+  - serviceaccounts
+  - endpoints
+  - limitranges
+  - resourcequotas
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - replicasets
+  - daemonsets
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+  - update
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - nodes
+  - pods
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  - clusterroles
+  - clusterrolebindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshots
+  - volumesnapshotcontents
+  - volumesnapshotclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ndk.nutanix.com
+  resources:
+  - applications
+  - applicationsnapshots
+  - protectionplans
+  - storageclusters
+  - appprotectionplans
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - dataservices.nutanix.com
+  resources:
+  - applications
+  - applicationsnapshots
+  - protectionplans
+  - appprotectionplans
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nkp-cluster-visualizer-binding
+  labels:
+    app: nkp-cluster-visualizer
+    environment: production
+    platform: nutanix
+    version: v3.3.0
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: nkp-cluster-visualizer-role
+subjects:
+- kind: ServiceAccount
+  name: nkp-cluster-visualizer-sa
+  namespace: default
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nkp-cluster-visualizer-config
+  namespace: default
+  labels:
+    app: nkp-cluster-visualizer
+    environment: production
+    platform: nutanix
+    version: v3.3.0
+data:
+  VERSION: "v3.3.0"
+  GITHUB_REPO: "https://github.com/nutanixed/nkp-cluster-visualizer.git"
+  CLUSTER_NAME: "nkp-dev01"
+  BIND_PORT: "9090"
+  FLASK_ENV: "production"
+  IN_CLUSTER: "true"
+  SECRET_KEY: "nkp-production-secret-key-change-me-in-production"
+  DASHBOARD_USERNAME: "nutanix"
+  DASHBOARD_PASSWORD: "Nutanix/4u!"
+  SESSION_TIMEOUT_HOURS: "24"
+  LOG_LEVEL: "INFO"
+  REFRESH_INTERVAL: "30"
+  ENABLE_DRILL_DOWN: "true"
+  SHOW_RESOURCE_USAGE: "true"
+  THEME: "nutanix"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nkp-cluster-visualizer
+  namespace: default
+  labels:
+    app: nkp-cluster-visualizer
+    environment: production
+    platform: nutanix
+    version: v3.3.0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nkp-cluster-visualizer
+      version: v3.0.0
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: nkp-cluster-visualizer
+        environment: production
+        platform: nutanix
+        version: v3.0.0
+    spec:
+      serviceAccountName: nkp-cluster-visualizer-sa
+      initContainers:
+      - name: git-clone
+        image: alpine/git:latest
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - |
+          echo "=== NKP Cluster Visualizer v3.3.0 Initialization ==="
+          echo "Repository: ${GITHUB_REPO}"
+          echo "Version: ${VERSION}"
+          echo "Timestamp: $(date)"
+          echo ""
+
+          echo "Cloning repository..."
+          if [ "${VERSION}" = "main" ] || [ "${VERSION}" = "master" ]; then
+            git clone ${GITHUB_REPO} /tmp/repo
+          else
+            echo "Cloning specific version: ${VERSION}"
+            git clone --branch ${VERSION} --single-branch ${GITHUB_REPO} /tmp/repo || {
+              echo "Failed to clone version ${VERSION}, falling back to main branch"
+              git clone ${GITHUB_REPO} /tmp/repo
+            }
+          fi
+
+          echo "Repository contents:"
+          ls -la /tmp/repo/
+
+          echo "Copying application files..."
+          cp -r /tmp/repo/* /app/ 2>/dev/null || {
+            echo "Direct copy failed, trying with find..."
+            find /tmp/repo -maxdepth 1 -type f -exec cp {} /app/ \;
+            find /tmp/repo -maxdepth 1 -type d ! -path /tmp/repo -exec cp -r {} /app/ \;
+          }
+
+          echo "Final application structure:"
+          ls -la /app/
+          echo ""
+          echo "Checking for v3.0.0 structure:"
+          ls -la /app/app/ 2>/dev/null || echo "app/ directory not found"
+          ls -la /app/templates/ 2>/dev/null || echo "templates/ directory not found"
+
+          echo "=== Initialization Complete ==="
+        env:
+        - name: VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-config
+              key: VERSION
+        - name: GITHUB_REPO
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-config
+              key: GITHUB_REPO
+        volumeMounts:
+        - name: app-volume
+          mountPath: /app
+      containers:
+      - name: nkp-cluster-visualizer
+        image: python:3.12-slim
+        command:
+        - /bin/bash
+        - -c
+        args:
+        - |
+          cd /app
+          echo "=== NKP Cluster Visualizer v3.3.0 Startup ==="
+          echo "Working directory: $(pwd)"
+          echo "Python version: $(python3 --version)"
+          echo "Application version: ${VERSION}"
+          echo "Flask environment: ${FLASK_ENV}"
+          echo "In-cluster mode: ${IN_CLUSTER}"
+          echo ""
+
+          echo "Installing dependencies..."
+          if [ -f "requirements.txt" ]; then
+            pip install --no-cache-dir -r requirements.txt
+            echo "Dependencies installed successfully"
+          else
+            echo "ERROR: No requirements.txt found!"
+            exit 1
+          fi
+
+          echo ""
+          echo "Application structure:"
+          ls -la
+          echo ""
+          echo "Checking v3.0.0 components:"
+          [ -f "run.py" ] && echo "✓ run.py found" || echo "✗ run.py NOT found"
+          [ -f "config.py" ] && echo "✓ config.py found" || echo "✗ config.py NOT found"
+          [ -f "cluster_api.py" ] && echo "✓ cluster_api.py found" || echo "✗ cluster_api.py NOT found"
+          [ -d "app" ] && echo "✓ app/ directory found" || echo "✗ app/ directory NOT found"
+          [ -d "templates" ] && echo "✓ templates/ directory found" || echo "✗ templates/ directory NOT found"
+
+          echo ""
+          echo "Starting NKP Cluster Visualizer v3.3.0..."
+          if [ -f "run.py" ]; then
+            python3 run.py
+          else
+            echo "ERROR: run.py not found!"
+            echo "Available Python files:"
+            find . -name "*.py" -type f
+            exit 1
+          fi
+        env:
+        - name: BIND_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-config
+              key: BIND_PORT
+        - name: CLUSTER_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-config
+              key: CLUSTER_NAME
+        - name: VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-config
+              key: VERSION
+        - name: FLASK_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-config
+              key: FLASK_ENV
+        - name: SECRET_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-config
+              key: SECRET_KEY
+        - name: DASHBOARD_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-config
+              key: DASHBOARD_USERNAME
+        - name: DASHBOARD_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-config
+              key: DASHBOARD_PASSWORD
+        - name: SESSION_TIMEOUT_HOURS
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-config
+              key: SESSION_TIMEOUT_HOURS
+        - name: IN_CLUSTER
+          valueFrom:
+            configMapKeyRef:
+              name: nkp-cluster-visualizer-config
+              key: IN_CLUSTER
+        ports:
+        - name: http
+          containerPort: 9090
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        startupProbe:
+          httpGet:
+            path: /api/health
+            port: 9090
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 12
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 9090
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 9090
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: app-volume
+          mountPath: /app
+      volumes:
+      - name: app-volume
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nkp-cluster-visualizer-service
+  namespace: default
+  labels:
+    app: nkp-cluster-visualizer
+    environment: production
+    platform: nutanix
+    version: v3.3.0
+spec:
+  type: ClusterIP
+  selector:
+    app: nkp-cluster-visualizer
+    version: v3.0.0
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nkp-cluster-visualizer-loadbalancer
+  namespace: default
+  labels:
+    app: nkp-cluster-visualizer
+    environment: production
+    platform: nutanix
+    version: v3.3.0
+spec:
+  type: LoadBalancer
+  selector:
+    app: nkp-cluster-visualizer
+    version: v3.0.0
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 9090

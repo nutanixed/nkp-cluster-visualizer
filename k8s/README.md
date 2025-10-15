@@ -4,29 +4,47 @@ This directory contains all Kubernetes manifests required to deploy the NKP Clus
 
 ## Files
 
+### All-in-One Manifest
+- **nkp-cluster-visualizer.yaml** - Complete deployment in a single file (recommended for NKP)
+
+### Individual Manifests
 - **serviceaccount.yaml** - ServiceAccount for the application
 - **clusterrole.yaml** - ClusterRole with permissions for all resource types
 - **clusterrolebinding.yaml** - Binds the ClusterRole to the ServiceAccount
 - **configmap.yaml** - Configuration for the application
-- **deployment.yaml** - Deployment specification
+- **deployment.yaml** - Deployment specification (3 replicas)
 - **service.yaml** - ClusterIP Service
 - **loadbalancer.yaml** - LoadBalancer Service for external access
 
+### Deployment Script
+- **deploy.sh** - Automated deployment script
+
 ## Deployment Instructions
 
-### Quick Deploy
+### Option 1: Single All-in-One Manifest (Recommended)
 
 ```bash
-# Apply all manifests
-kubectl apply -f k8s/
+# Deploy everything with one command
+kubectl apply -f k8s/nkp-cluster-visualizer.yaml
+```
 
-# Or use the deploy script
+This is the recommended approach for NKP deployments as it:
+- Deploys all resources in the correct order
+- Ensures consistency across all components
+- Simplifies version control and updates
+- Makes it easy to share and replicate deployments
+
+### Option 2: Automated Script
+
+```bash
+# Use the deployment script
 ./k8s/deploy.sh
 ```
 
-### Manual Deploy (in order)
+### Option 3: Individual Manifests
 
 ```bash
+# Apply manifests in order
 kubectl apply -f k8s/serviceaccount.yaml
 kubectl apply -f k8s/clusterrole.yaml
 kubectl apply -f k8s/clusterrolebinding.yaml

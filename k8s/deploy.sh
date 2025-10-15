@@ -42,7 +42,10 @@ kubectl apply -f "${SCRIPT_DIR}/clusterrolebinding.yaml"
 echo "4. Creating ConfigMap..."
 kubectl apply -f "${SCRIPT_DIR}/configmap.yaml"
 
-echo "5. Creating Services..."
+echo "5. Creating Deployment..."
+kubectl apply -f "${SCRIPT_DIR}/deployment.yaml"
+
+echo "6. Creating Services..."
 kubectl apply -f "${SCRIPT_DIR}/service.yaml"
 kubectl apply -f "${SCRIPT_DIR}/loadbalancer.yaml"
 
