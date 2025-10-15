@@ -11,6 +11,16 @@ main_bp = Blueprint('main', __name__)
 rbac_v1 = client.RbacAuthorizationV1Api()
 
 
+def is_pending_deletion(resource_obj):
+    """Check if a resource has deletionTimestamp set (stuck in deletion)"""
+    if hasattr(resource_obj, 'metadata') and hasattr(resource_obj.metadata, 'deletion_timestamp'):
+        return resource_obj.metadata.deletion_timestamp is not None
+    elif isinstance(resource_obj, dict):
+        metadata = resource_obj.get('metadata', {})
+        return metadata.get('deletionTimestamp') is not None
+    return False
+
+
 @main_bp.route('/')
 # @login_required  # Temporarily disabled for testing
 def index():
