@@ -1515,7 +1515,7 @@
         }
         
         .notification.error {
-            background: var(--error);
+            background: var(--warning);
         }
         
         .notification.info {
@@ -2576,11 +2576,11 @@
             
             notification.className = `notification ${type} show`;
             
-            // Auto-hide after 3 seconds unless persistent (for loading states)
+            // Auto-hide after 6 seconds unless persistent (for loading states)
             if (!persistent) {
                 setTimeout(() => {
                     notification.classList.remove('show');
-                }, 3000);
+                }, 6000);
             }
         }
         
