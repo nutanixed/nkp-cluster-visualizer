@@ -7,9 +7,9 @@ metadata:
     app: nkp-cluster-visualizer
     environment: production
     platform: nutanix
-    version: v3.3.0
+    version: v3.4.1
 data:
-  VERSION: "v3.3.0"
+  VERSION: "v3.4.1"
   GITHUB_REPO: "https://github.com/nutanixed/nkp-cluster-visualizer.git"
   CLUSTER_NAME: "nkp-dev01"
   BIND_PORT: "9090"

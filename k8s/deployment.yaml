@@ -7,7 +7,7 @@ metadata:
     app: nkp-cluster-visualizer
     environment: production
     platform: nutanix
-    version: v3.3.0
+    version: v3.4.1
 spec:
   replicas: 3
   selector:
@@ -36,7 +36,7 @@ spec:
         - -c
         args:
         - |
-          echo "=== NKP Cluster Visualizer v3.3.0 Initialization ==="
+          echo "=== NKP Cluster Visualizer v3.4.1 Initialization ==="
           echo "Repository: ${GITHUB_REPO}"
           echo "Version: ${VERSION}"
           echo "Timestamp: $(date)"
@@ -94,7 +94,7 @@ spec:
         args:
         - |
           cd /app
-          echo "=== NKP Cluster Visualizer v3.3.0 Startup ==="
+          echo "=== NKP Cluster Visualizer v3.4.1 Startup ==="
           echo "Working directory: $(pwd)"
           echo "Python version: $(python3 --version)"
           echo "Application version: ${VERSION}"
@@ -123,7 +123,7 @@ spec:
           [ -d "templates" ] && echo "✓ templates/ directory found" || echo "✗ templates/ directory NOT found"
 
           echo ""
-          echo "Starting NKP Cluster Visualizer v3.3.0..."
+          echo "Starting NKP Cluster Visualizer v3.4.1..."
           if [ -f "run.py" ]; then
             python3 run.py
           else

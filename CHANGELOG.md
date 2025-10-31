@@ -5,6 +5,17 @@ All notable changes to the NKP Cluster Visualizer project will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.1] - 2025-10-31
+
+### 🎨 Changed
+
+- **Replica Scaling**: Limited maximum replicas to 3 for demo purposes
+  - Added validation in deployment scaling endpoint to reject replicas > 3
+  - Error message: "For demo purposes 3 is the max"
+- **Error Notification UI**:
+  - Increased error notification display time from 3 seconds to 6 seconds
+  - Changed error notification color from red to yellow (warning color)
+
 ## [3.4.0] - 2025-01-15
 
 ### 🐛 Fixed
