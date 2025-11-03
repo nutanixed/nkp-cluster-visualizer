@@ -85,10 +85,8 @@ def scale_deployment(namespace, deployment_name):
             return jsonify({'error': 'Missing replicas parameter'}), 400
         
         replicas = int(data['replicas'])
-        if replicas < 0:
-            return jsonify({'error': 'Replicas must be non-negative'}), 400
-        if replicas > 3:
-            return jsonify({'error': 'For demo purposes 3 is the max'}), 400
+        if replicas < 1 or replicas > 3:
+            return jsonify({'error': 'For demo purposes the environment supports 1-3 replicas'}), 400
         
         # Try to find as a deployment first
         resource_type = 'Deployment'
