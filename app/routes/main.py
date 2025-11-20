@@ -342,11 +342,17 @@ def resources_api():
         
         # Helper function to check if configmap/secret is orphaned (not used by any pod)
         def is_config_orphaned(resource_name, resource_namespace, resource_type='configmap', resource_obj=None):
+            print(f"DEBUG is_config_orphaned: name={resource_name}, ns={resource_namespace}, type={resource_type}")
             # Check for special system resources that are not orphaned
             if resource_type == 'configmap':
                 # kube-root-ca.crt is auto-created in every namespace for service account verification
                 if resource_name == 'kube-root-ca.crt':
                     return False
+                # ndk-dashboard-settings is accessed programmatically by the ndk-dashboard application
+                if resource_name == 'ndk-dashboard-settings' and resource_namespace == 'ndk-dev':
+                    print(f"MATCH: {resource_name} is not orphaned")
+                    return False
+            
             
             if resource_obj:
                 # Check for ownerReferences - resources managed by CRDs/operators
@@ -393,12 +399,42 @@ def resources_api():
                             return False
                         # Image pull secrets
                         if secret_type == 'kubernetes.io/dockerconfigjson':
-                            # Check if used by any service account
+                            # Check if used by any service account in the same namespace
                             try:
                                 svc_accounts = v1.list_namespaced_service_account(resource_namespace)
                                 for sa in svc_accounts.items:
                                     if sa.image_pull_secrets:
                                         for ips in sa.image_pull_secrets:
+                                            if ips.name == resource_name:
+                                                return False
+                            except:
+                                pass
+                            # Check if used by any deployment's imagePullSecrets in the same namespace
+                            try:
+                                deployments = apps_v1.list_namespaced_deployment(resource_namespace)
+                                for dep in deployments.items:
+                                    if dep.spec.template.spec.image_pull_secrets:
+                                        for ips in dep.spec.template.spec.image_pull_secrets:
+                                            if ips.name == resource_name:
+                                                return False
+                            except:
+                                pass
+                            # Check if used by any statefulset's imagePullSecrets in the same namespace
+                            try:
+                                statefulsets = apps_v1.list_namespaced_stateful_set(resource_namespace)
+                                for sts in statefulsets.items:
+                                    if sts.spec.template.spec.image_pull_secrets:
+                                        for ips in sts.spec.template.spec.image_pull_secrets:
+                                            if ips.name == resource_name:
+                                                return False
+                            except:
+                                pass
+                            # Check if used by any daemonset's imagePullSecrets in the same namespace
+                            try:
+                                daemonsets = apps_v1.list_namespaced_daemon_set(resource_namespace)
+                                for ds in daemonsets.items:
+                                    if ds.spec.template.spec.image_pull_secrets:
+                                        for ips in ds.spec.template.spec.image_pull_secrets:
                                             if ips.name == resource_name:
                                                 return False
                             except:
